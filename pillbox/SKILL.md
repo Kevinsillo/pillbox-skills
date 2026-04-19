@@ -5,8 +5,10 @@ description: >
   Usar cuando las herramientas pill_take, pill_search, prescription_open, bottle_list,
   capsule_take o capsule_search están disponibles,
   al empezar trabajo en un proyecto conocido, o cuando el usuario pide recordar o recuperar algo.
+license: PolyForm-Noncommercial-1.0.0
 metadata:
-  version: 3.0.0
+  author: https://github.com/Kevinsillo
+  version: 1.0.0
 ---
 
 # Pillbox
