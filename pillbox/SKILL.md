@@ -29,8 +29,8 @@ Dos tipos de memoria independientes. La elección entre ellos es la decisión m�
 ```json
 { "tool": "capsule_search", "query": "<términos relevantes>" }
 { "tool": "bottle_list" }
-{ "tool": "pill_context", "bottle_id": 1 }
-{ "tool": "prescription_open", "bottle_id": 1, "title": "<descripción de la tarea>" }
+{ "tool": "pill_context", "bottle_id": "<uuid>" }
+{ "tool": "prescription_open", "bottle_id": "<uuid>", "title": "<descripción de la tarea>" }
 ```
 
 Si `prescription_open` devuelve `prescription_already_open`: el campo `data` contiene la prescripción
