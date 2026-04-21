@@ -8,7 +8,7 @@ description: >
 license: PolyForm-Noncommercial-1.0.0
 metadata:
   author: https://github.com/Kevinsillo
-  version: 1.0.0
+  version: 0.1.0
 ---
 
 # Pillbox
