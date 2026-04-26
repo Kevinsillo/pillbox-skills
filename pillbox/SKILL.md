@@ -8,7 +8,7 @@ description: >
 license: PolyForm-Noncommercial-1.0.0
 metadata:
   author: https://github.com/Kevinsillo
-  version: 0.1.0
+  version: 0.2.0
 ---
 
 # Pillbox
@@ -17,10 +17,24 @@ Dos tipos de memoria independientes. La elección entre ellos es la decisión m�
 
 | | **Pills** | **Capsules** |
 |---|---|---|
-| ¿Qué guarda? | Conocimiento del proyecto actual | Preferencias y hábitos del usuario |
-| ¿Requiere prescription? | Sí — siempre | No |
-| ¿Scope? | Un bottle (proyecto) | Global, cross-proyecto |
+| ¿Qué guarda? | Conocimiento de un proyecto (bottle) | Preferencias y hábitos del usuario |
+| ¿Requiere prescription? | Sí — y debe estar **abierta** | No |
+| ¿Scope? | Ligado al bottle (local o global) | Siempre global, sin bottle |
 | Ejemplo | "decidimos usar UUID v7" | "el usuario prefiere commits en español" |
+
+---
+
+## Bottles: local vs global
+
+Cada bottle tiene un `scope` que determina dónde vive su DB:
+
+| Scope | DB location | Cuándo usarlo |
+|---|---|---|
+| `local` | `.pillbox/pillbox.db` (dentro del proyecto) | Conocimiento específico de ese repo |
+| `global` | `~/.pillbox/pillbox.db` | Conocimiento personal/usuario, cross-repo |
+
+`bottle_list` devuelve todos los bottles registrados con el campo `linked: bool`.
+Si `linked: false`, la DB no existe en disco (proyecto movido o eliminado) — no abrir prescriptions sobre él.
 
 ---
 
@@ -35,6 +49,8 @@ Dos tipos de memoria independientes. La elección entre ellos es la decisión m�
 
 Si `prescription_open` devuelve `prescription_already_open`: el campo `data` contiene la prescripción
 activa — reutilizar ese `id` directamente sin abrir otra.
+
+Solo abrir prescription sobre bottles con `linked: true`.
 
 ---
 
@@ -62,6 +78,9 @@ activa — reutilizar ese `id` directamente sin abrir otra.
 | `pill_revise` | `id`, `patch{title?, content?}` | Actualizar pill existente |
 | `pill_discard` | `id` | Soft-delete (irreversible) |
 
+`pill_take` requiere `prescription_id` de una prescription **abierta** (`ended_at IS NULL`).
+Si la prescription está cerrada o descartada, devuelve error `PrescriptionRequired`.
+
 ### Capsules
 
 | Tool | Parámetros clave | Cuándo |
@@ -81,13 +100,15 @@ activa — reutilizar ese `id` directamente sin abrir otra.
 | `prescription_read` | `id` | Ver detalles de una prescripción |
 | `prescription_discard` | `id` | Eliminar prescripción + todas sus pills en cascada |
 
+Solo puede haber **una prescription abierta por bottle** al mismo tiempo.
+
 ### Bottles
 
 | Tool | Parámetros clave | Cuándo |
 |---|---|---|
-| `bottle_list` | — | Listar proyectos registrados |
-| `bottle_create` | `name`, `display_name`, `directory`, `scope` | Registrar proyecto nuevo (normalmente lo hace el CLI) |
-| `stats` | — | Alias de `bottle_list` |
+| `bottle_list` | — | Listar bottles registrados (incluye `scope` y `linked`) |
+| `bottle_create` | `name`, `display_name`, `directory`, `scope` | Registrar bottle nuevo (normalmente lo hace el CLI) |
+| `stats` | — | Idéntico a `bottle_list` |
 | `pill_compounds` | — | Compounds disponibles para pill_take |
 | `capsule_compounds` | — | Compounds disponibles para capsule_take |
 
@@ -100,6 +121,10 @@ Los compounds son dinámicos. Consultar antes de elegir:
 - `capsule_compounds` → lista de compounds válidos para `capsule_take`
 
 Cada entry incluye `id`, `description` y `prompt_hint` con instrucciones de formato.
+
+Compounds conocidos de pills: `decision`, `architecture`, `bugfix`, `pattern`, `discovery`, `learning`, `feedback`, `prescription_summary`, `manual`.
+
+Compounds conocidos de capsules: `convention`, `workflow`, `environment`, `context`, `goal`, `feedback`, `manual`.
 
 ---
 
@@ -132,4 +157,5 @@ files: solo los modificados significativamente
 - **Buscar antes de crear**: `pill_search` / `capsule_search` antes de `pill_take` / `capsule_take` para evitar duplicados.
 - **No guardar lo que está en el código**: solo lo que no es obvio leyendo el repo (decisiones, contexto, causas).
 - **prescription_summary siempre**: sin él, el contexto de la sesión se pierde para futuras sesiones.
+- **Prescription abierta para pills**: toda pill requiere que su prescription esté abierta en el momento de guardarla.
 - **Subagentes no usan MCP**: solo el orquestrador llama `pill_take`. Los subagentes devuelven hallazgos estructurados y el orquestrador consolida antes de guardar.
