@@ -2,8 +2,8 @@
 name: pillbox
 description: >
   Apoyo para las MCP tools de Pillbox — memoria persistente por proyectos para agentes IA.
-  Usar cuando las herramientas pill_take, pill_search, prescription_open, bottle_list,
-  capsule_take o capsule_search están disponibles,
+  Usar cuando las herramientas pill_store, pill_search, prescription_open, bottle_list,
+  capsule_store o capsule_search están disponibles,
   al empezar trabajo en un proyecto conocido, o cuando el usuario pide recordar o recuperar algo.
 license: PolyForm-Noncommercial-1.0.0
 metadata:
@@ -57,7 +57,7 @@ Solo abrir prescription sobre bottles con `linked: true`.
 ## Cierre de sesión
 
 ```json
-{ "tool": "pill_take", "prescription_id": "<uuid>", "compound": "prescription_summary", "title": "<título>", "content": "<resumen>" }
+{ "tool": "pill_store", "prescription_id": "<uuid>", "compound": "prescription_summary", "title": "<título>", "content": "<resumen>" }
 { "tool": "prescription_close", "id": "<uuid>" }
 ```
 
@@ -71,21 +71,21 @@ Solo abrir prescription sobre bottles con `linked: true`.
 
 | Tool | Parámetros clave | Cuándo |
 |---|---|---|
-| `pill_take` | `prescription_id`, `compound`, `title`, `content` | Guardar conocimiento nuevo |
+| `pill_store` | `prescription_id`, `compound`, `title`, `content` | Guardar conocimiento nuevo |
 | `pill_search` | `query`, `bottle_id?`, `compound?`, `limit?` | Buscar antes de crear (evitar duplicados) |
 | `pill_context` | `bottle_id`, `prescription_limit?`, `pill_limit?` | Cargar contexto al inicio |
 | `pill_read` | `id` | Leer contenido completo de una pill |
 | `pill_revise` | `id`, `patch{title?, content?}` | Actualizar pill existente |
 | `pill_discard` | `id` | Soft-delete (irreversible) |
 
-`pill_take` requiere `prescription_id` de una prescription **abierta** (`ended_at IS NULL`).
+`pill_store` requiere `prescription_id` de una prescription **abierta** (`ended_at IS NULL`).
 Si la prescription está cerrada o descartada, devuelve error `PrescriptionRequired`.
 
 ### Capsules
 
 | Tool | Parámetros clave | Cuándo |
 |---|---|---|
-| `capsule_take` | `compound`, `title`, `content` | Guardar preferencia/hábito del usuario |
+| `capsule_store` | `compound`, `title`, `content` | Guardar preferencia/hábito del usuario |
 | `capsule_search` | `query`, `compound?`, `limit?` | Buscar preferencias al inicio o antes de crear |
 | `capsule_read` | `id` | Leer contenido completo |
 | `capsule_revise` | `id`, `patch{title?, content?, compound?}` | Actualizar capsule existente |
@@ -109,16 +109,16 @@ Solo puede haber **una prescription abierta por bottle** al mismo tiempo.
 | `bottle_list` | — | Listar bottles registrados (incluye `scope` y `linked`) |
 | `bottle_create` | `name`, `display_name`, `directory`, `scope` | Registrar bottle nuevo (normalmente lo hace el CLI) |
 | `stats` | — | Idéntico a `bottle_list` |
-| `pill_compounds` | — | Compounds disponibles para pill_take |
-| `capsule_compounds` | — | Compounds disponibles para capsule_take |
+| `pill_compounds` | — | Compounds disponibles para pill_store |
+| `capsule_compounds` | — | Compounds disponibles para capsule_store |
 
 ---
 
 ## Compounds
 
 Los compounds son dinámicos. Consultar antes de elegir:
-- `pill_compounds` → lista de compounds válidos para `pill_take`
-- `capsule_compounds` → lista de compounds válidos para `capsule_take`
+- `pill_compounds` → lista de compounds válidos para `pill_store`
+- `capsule_compounds` → lista de compounds válidos para `capsule_store`
 
 Cada entry incluye `id`, `description` y `prompt_hint` con instrucciones de formato.
 
@@ -154,8 +154,8 @@ files: solo los modificados significativamente
 
 ## Reglas
 
-- **Buscar antes de crear**: `pill_search` / `capsule_search` antes de `pill_take` / `capsule_take` para evitar duplicados.
+- **Buscar antes de crear**: `pill_search` / `capsule_search` antes de `pill_store` / `capsule_store` para evitar duplicados.
 - **No guardar lo que está en el código**: solo lo que no es obvio leyendo el repo (decisiones, contexto, causas).
 - **prescription_summary siempre**: sin él, el contexto de la sesión se pierde para futuras sesiones.
 - **Prescription abierta para pills**: toda pill requiere que su prescription esté abierta en el momento de guardarla.
-- **Subagentes no usan MCP**: solo el orquestrador llama `pill_take`. Los subagentes devuelven hallazgos estructurados y el orquestrador consolida antes de guardar.
+- **Subagentes no usan MCP**: solo el orquestrador llama `pill_store`. Los subagentes devuelven hallazgos estructurados y el orquestrador consolida antes de guardar.
