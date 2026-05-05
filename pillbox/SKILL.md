@@ -44,6 +44,19 @@ Si `linked: false`, la DB no existe en disco (proyecto movido o eliminado) — n
 { "tool": "capsule_search", "query": "<términos relevantes>" }
 { "tool": "bottle_list" }
 { "tool": "bottle_context", "bottle_id": "<uuid>" }
+```
+
+`bottle_context` devuelve el **índice de prescriptions** (estado, fechas, pill_count). Si hay una sesión abierta o reciente relevante para la tarea actual, profundizar:
+
+```json
+{ "tool": "prescription_context", "prescription_id": "<uuid>" }
+```
+
+`prescription_context` devuelve las **pills de esa sesión** (id, compound, título, snippet 300 chars). Usarlo para recuperar trabajo previo antes de lanzar sub-agentes o antes de abrir una prescription nueva.
+
+Finalmente, si no hay prescription abierta:
+
+```json
 { "tool": "prescription_open", "bottle_id": "<uuid>", "title": "<descripción de la tarea>" }
 ```
 
