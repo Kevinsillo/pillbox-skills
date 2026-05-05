@@ -43,7 +43,7 @@ Si `linked: false`, la DB no existe en disco (proyecto movido o eliminado) — n
 ```json
 { "tool": "capsule_search", "query": "<términos relevantes>" }
 { "tool": "bottle_list" }
-{ "tool": "pill_context", "bottle_id": "<uuid>" }
+{ "tool": "bottle_context", "bottle_id": "<uuid>" }
 { "tool": "prescription_open", "bottle_id": "<uuid>", "title": "<descripción de la tarea>" }
 ```
 
@@ -73,7 +73,8 @@ Solo abrir prescription sobre bottles con `linked: true`.
 |---|---|---|
 | `pill_store` | `prescription_id`, `compound`, `title`, `content` | Guardar conocimiento nuevo |
 | `pill_search` | `query`, `bottle_id?`, `compound?`, `limit?` | Buscar antes de crear (evitar duplicados) |
-| `pill_context` | `bottle_id`, `prescription_limit?`, `pill_limit?` | Cargar contexto al inicio |
+| `bottle_context` | `bottle_id`, `limit?` | Índice de prescriptions al inicio de sesión |
+| `prescription_context` | `prescription_id`, `limit?` | Pills de una prescription concreta |
 | `pill_read` | `id` | Leer contenido completo de una pill |
 | `pill_revise` | `id`, `patch{title?, content?}` | Actualizar pill existente |
 | `pill_discard` | `id` | Soft-delete (irreversible) |
