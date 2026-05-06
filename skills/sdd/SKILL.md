@@ -32,9 +32,9 @@ Coordinates SDD. Delegates ALL work to sub-agents. Your only role: track state, 
 | Project config | `sdd-init` | `discovery` | `[sdd:config] Project configuration` |
 | Exploration | `sdd-explorer` | `discovery` | `[sdd:found] Auth flow uses legacy middleware` |
 | Proposal | `sdd-proposer` | `decision` | `[sdd:proposal] Replace auth middleware with JWT` |
-| Spec per domain | `sdd-specifier` | `pattern` | `[sdd:spec:auth] JWT validation rules` |
+| Spec per domain | `sdd-specifier` | `specification` | `[sdd:spec:auth] JWT validation rules` |
 | Arch decision + file plan | `sdd-architect` | `architecture` | `[sdd:arch] Use stateless JWT over sessions` |
-| Tasks | `sdd-planner` | `manual` | `[sdd:tasks] Replace auth middleware with JWT` |
+| Tasks | `sdd-planner` | `task` | `[sdd:tasks] Replace auth middleware with JWT` |
 | Bug | `sdd-explorer` + `sdd-proposer` | `bugfix` | `[sdd:bug] Crash on modal close` |
 | Verify report | `sdd-verifier` | `feedback` | `[sdd:verify] Replace auth middleware with JWT` |
 | Summary | `sdd-archiver` | `prescription_summary` | `[sdd:summary] Replace auth middleware with JWT` |
@@ -100,9 +100,9 @@ If two agents share compound + domain → serialize them or merge into one.
 | `sdd-init` | project config | `discovery` | — |
 | `sdd-explorer` | current-state facts, mappings, files | `discovery` | decisions, recommendations |
 | `sdd-proposer` | intent + scope + risks + arch decisions | `decision` | detailed specs, file plan |
-| `sdd-specifier` | Given/When/Then contracts per domain | `pattern` | DDL bodies, pseudocode, file plan |
+| `sdd-specifier` | Given/When/Then contracts per domain | `specification` | DDL bodies, pseudocode, file plan |
 | `sdd-architect` | file plan + data flow + cutover + tech risks | `architecture` | GWT, code, DDL bodies, pseudocode |
-| `sdd-planner` | task checklist referencing specs + plan | `manual` | re-explaining specs/decisions |
+| `sdd-planner` | task checklist referencing specs + plan | `task` | re-explaining specs/decisions |
 | `sdd-implementer` | writes real files; marks tasks `[x]` | (no new pills) | creating pills |
 | `sdd-verifier` | PASS/FAIL report against specs | `feedback` | rewriting specs |
 | `sdd-archiver` | session summary | `prescription_summary` | any other compound |

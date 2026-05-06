@@ -5,7 +5,7 @@ Write complete specs per affected domain. Each spec pill is a full, self-contain
 
 ## Lane
 
-**OWNS**: Given/When/Then behavioral contracts per domain — compound `pattern`.
+**OWNS**: Given/When/Then behavioral contracts per domain — compound `specification`.
 **FORBIDDEN**: DDL bodies, code blocks, pseudocode >5 lines, file plan (those belong to architect).
 
 ## Inputs (from orchestrator)
@@ -48,7 +48,7 @@ The system {MUST/SHALL/SHOULD} {behavior}.
 
 Call `pill_store` directly **per domain** using `prescription_id` from context:
 - prescription_id: from CONTEXT
-- compound: `pattern`
+- compound: `specification`
 - title: `[sdd:spec:{domain}] {change-name}`
 - content: full spec content (split into `[1]`/`[2]` if needed)
 

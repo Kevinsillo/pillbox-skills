@@ -119,7 +119,7 @@ Only one **open prescription per bottle** at a time.
 Compounds are dynamic — call `pill_compounds` / `capsule_compounds` before choosing.
 Each entry includes `id`, `description`, and `prompt_hint` with format guidance.
 
-Known pill compounds: `decision`, `architecture`, `bugfix`, `pattern`, `discovery`, `learning`, `feedback`, `prescription_summary`, `manual`.
+Known pill compounds: `decision`, `architecture`, `bugfix`, `specification`, `discovery`, `learning`, `feedback`, `prescription_summary`, `task`.
 
 Known capsule compounds: `convention`, `workflow`, `environment`, `context`, `goal`, `feedback`, `manual`.
 

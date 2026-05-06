@@ -5,7 +5,7 @@ Break down the design into concrete, actionable implementation tasks organized b
 
 ## Lane
 
-**OWNS**: task checklist referencing specs and file plan — compound `manual`.
+**OWNS**: task checklist referencing specs and file plan — compound `task`.
 **FORBIDDEN**: re-explaining specs or architecture decisions (reference by pill ID instead).
 
 ## Inputs (from orchestrator)
@@ -48,7 +48,7 @@ Break down the design into concrete, actionable implementation tasks organized b
 
 Call `pill_store` directly with the `prescription_id` from context:
 - prescription_id: from CONTEXT
-- compound: `manual`
+- compound: `task`
 - title: `[sdd:tasks] {change-name}`
 - content: full tasks markdown
 
