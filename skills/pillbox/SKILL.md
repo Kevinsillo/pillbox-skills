@@ -1,58 +1,68 @@
 ---
 name: pillbox
 description: >
-  Apoyo para las MCP tools de Pillbox — memoria persistente por proyectos para agentes IA.
-  Usar cuando las herramientas pill_store, pill_search, prescription_open, bottle_list,
-  capsule_store o capsule_search están disponibles,
-  al empezar trabajo en un proyecto conocido, o cuando el usuario pide recordar o recuperar algo.
+  Support for Pillbox MCP tools — persistent memory per project for AI agents.
+  Use when pill_store, pill_search, prescription_open, bottle_list,
+  capsule_store or capsule_search tools are available,
+  when starting work on a known project, or when the user asks to remember or retrieve something.
 license: PolyForm-Noncommercial-1.0.0
 metadata:
-  author: Kevin Illanas — https://github.com/kevinsillo
+  author: Kevin Illanas — https://github.com/Kevinsillo
   version: 0.3.0
-  trigger: pillbox, "usar pillbox", "memoria persistente"
+  trigger: pillbox, "use pillbox", "persistent memory"
   tags: pillbox, memory, mcp
 ---
 
 # Pillbox
 
-Dos tipos de memoria independientes. La elección entre ellos es la decisión más importante.
+Two independent memory types. Choosing between them is the most important decision.
 
 | | **Pills** | **Capsules** |
 |---|---|---|
-| ¿Qué guarda? | Conocimiento de un proyecto (bottle) | Preferencias y hábitos del usuario |
-| ¿Requiere prescription? | Sí — y debe estar **abierta** | No |
-| ¿Scope? | Ligado al bottle (local o global) | Siempre global, sin bottle |
-| Ejemplo | "decidimos usar UUID v7" | "el usuario prefiere commits en español" |
+| What it stores | Project knowledge (bottle) | User preferences and habits |
+| Requires prescription? | Yes — and it must be **open** | No |
+| Scope? | Bound to the bottle (local or global) | Always global, no bottle |
+| Example | "we decided to use UUID v7" | "user prefers commits in Spanish" |
 
 ---
 
 ## Bottles: local vs global
 
-| Scope | DB location | Cuándo usarlo |
+| Scope | DB location | When to use |
 |---|---|---|
-| `local` | `.pillbox/pillbox.db` (dentro del proyecto) | Conocimiento específico de ese repo |
-| `global` | `~/.pillbox/pillbox.db` | Conocimiento personal/usuario, cross-repo |
+| `local` | `.pillbox/pillbox.db` (inside the project) | Knowledge specific to that repo |
+| `global` | `~/.pillbox/pillbox.db` | Personal/user knowledge, cross-repo |
 
-`bottle_list` devuelve todos los bottles con `linked: bool`.
-Si `linked: false`, la DB no existe en disco — no abrir prescriptions sobre él.
+`bottle_list` returns all bottles with `linked: bool`.
+If `linked: false`, the DB does not exist on disk — do not open prescriptions on it.
 
 ---
 
-## Flujo de sesión
+## Session flow
 
-**Inicio:**
+**Start:**
 ```
 bottle_list → bottle_id
-bottle_context bottle_id → ver prescriptions existentes
+bottle_context bottle_id → see existing prescriptions
 prescription_open bottle_id title → prescription_id
 ```
-Si `prescription_open` devuelve `prescription_already_open`: reutilizar el `id` del campo `data`.
+If `prescription_open` returns `prescription_already_open`: reuse the `id` from the `data` field.
 
-**Cierre:**
+**Close:**
 ```
-pill_store prescription_id compound=prescription_summary title content → guardar resumen
+pill_store prescription_id compound=prescription_summary title content → save summary
 prescription_close id
 ```
+
+---
+
+## Author identity
+
+Resolve before calling `prescription_open` or `pill_store`:
+
+1. `~/.pillbox/identity.json` — use if it exists with `name` and `email` fields
+2. `git config user.name` / `git config user.email` — if configured, use and save to `~/.pillbox/identity.json`
+3. Ask the user for name and email → save to `~/.pillbox/identity.json`
 
 ---
 
@@ -60,69 +70,69 @@ prescription_close id
 
 ### Pills
 
-| Tool | Parámetros clave | Cuándo |
+| Tool | Key parameters | When |
 |---|---|---|
-| `pill_store` | `prescription_id`, `compound`, `title`, `content` | Guardar conocimiento nuevo |
-| `pill_search` | `query`, `bottle_id?`, `compound?`, `limit?` | Buscar antes de crear (evitar duplicados) |
-| `pill_read` | `id` | Leer contenido completo de una pill |
-| `pill_revise` | `id`, `patch{title?, content?}` | Actualizar pill existente |
+| `pill_store` | `prescription_id`, `compound`, `title`, `content` | Save new knowledge |
+| `pill_search` | `query`, `bottle_id?`, `compound?`, `limit?` | Search before creating (avoid duplicates) |
+| `pill_read` | `id` | Read full content of a pill |
+| `pill_revise` | `id`, `patch{title?, content?}` | Update existing pill |
 | `pill_discard` | `id` | Soft-delete (irreversible) |
 
-`pill_store` requiere prescription **abierta** (`ended_at IS NULL`) — error `PrescriptionRequired` si no.
+`pill_store` requires an **open** prescription (`ended_at IS NULL`) — error `PrescriptionRequired` if not.
 
 ### Capsules
 
-| Tool | Parámetros clave | Cuándo |
+| Tool | Key parameters | When |
 |---|---|---|
-| `capsule_store` | `compound`, `title`, `content` | Guardar preferencia/hábito del usuario |
-| `capsule_search` | `query`, `compound?`, `limit?` | Buscar preferencias al inicio o antes de crear |
-| `capsule_read` | `id` | Leer contenido completo |
-| `capsule_revise` | `id`, `patch{title?, content?, compound?}` | Actualizar capsule existente |
+| `capsule_store` | `compound`, `title`, `content` | Save user preference/habit |
+| `capsule_search` | `query`, `compound?`, `limit?` | Search preferences at start or before creating |
+| `capsule_read` | `id` | Read full content |
+| `capsule_revise` | `id`, `patch{title?, content?, compound?}` | Update existing capsule |
 | `capsule_discard` | `id` | Soft-delete |
 
 ### Prescriptions
 
-| Tool | Parámetros clave | Cuándo |
+| Tool | Key parameters | When |
 |---|---|---|
-| `prescription_open` | `bottle_id`, `title` | Iniciar sesión de trabajo |
-| `prescription_close` | `id` | Finalizar sesión |
-| `prescription_context` | `prescription_id` | Recuperar pills de una sesión existente |
-| `prescription_read` | `id` | Ver metadatos de una prescripción |
-| `prescription_discard` | `id` | Eliminar prescripción + todas sus pills en cascada |
+| `prescription_open` | `bottle_id`, `title` | Start a work session |
+| `prescription_close` | `id` | End a session |
+| `prescription_context` | `prescription_id` | Retrieve pills from an existing session |
+| `prescription_read` | `id` | View prescription metadata |
+| `prescription_discard` | `id` | Delete prescription + all its pills in cascade |
 
-Solo puede haber **una prescription abierta por bottle** al mismo tiempo.
+Only one **open prescription per bottle** at a time.
 
 ### Bottles
 
-| Tool | Parámetros clave | Cuándo |
+| Tool | Key parameters | When |
 |---|---|---|
-| `bottle_list` | — | Listar bottles registrados (incluye `scope` y `linked`) |
-| `bottle_context` | `bottle_id` | Ver índice de prescriptions del bottle |
-| `bottle_create` | `name`, `display_name`, `directory`, `scope` | Registrar bottle nuevo |
-| `pill_compounds` | — | Compounds válidos para `pill_store` (incluye `prompt_hint`) |
-| `capsule_compounds` | — | Compounds válidos para `capsule_store` (incluye `prompt_hint`) |
+| `bottle_list` | — | List registered bottles (includes `scope` and `linked`) |
+| `bottle_context` | `bottle_id` | View prescription index for the bottle |
+| `bottle_create` | `name`, `display_name`, `directory`, `scope` | Register a new bottle |
+| `pill_compounds` | — | Valid compounds for `pill_store` (includes `prompt_hint`) |
+| `capsule_compounds` | — | Valid compounds for `capsule_store` (includes `prompt_hint`) |
 
 ---
 
 ## Compounds
 
-Los compounds son dinámicos — consultar `pill_compounds` / `capsule_compounds` antes de elegir.
-Cada entry incluye `id`, `description` y `prompt_hint` con orientación de formato.
+Compounds are dynamic — call `pill_compounds` / `capsule_compounds` before choosing.
+Each entry includes `id`, `description`, and `prompt_hint` with format guidance.
 
-Compounds conocidos de pills: `decision`, `architecture`, `bugfix`, `pattern`, `discovery`, `learning`, `feedback`, `prescription_summary`, `manual`.
+Known pill compounds: `decision`, `architecture`, `bugfix`, `pattern`, `discovery`, `learning`, `feedback`, `prescription_summary`, `manual`.
 
-Compounds conocidos de capsules: `convention`, `workflow`, `environment`, `context`, `goal`, `feedback`, `manual`.
-
----
-
-## Límite de contenido
-
-Límite duro: **5000 chars** por pill/capsule. Si el contenido lo supera, `pill_store` rechaza la llamada.
+Known capsule compounds: `convention`, `workflow`, `environment`, `context`, `goal`, `feedback`, `manual`.
 
 ---
 
-## Reglas
+## Content limit
 
-- **Buscar antes de crear**: `pill_search` / `capsule_search` antes de guardar para evitar duplicados.
-- **No guardar lo que está en el código**: solo lo que no es obvio leyendo el repo (decisiones, contexto, causas).
-- **Prescription abierta para pills**: toda pill requiere que su prescription esté abierta en el momento de guardarla.
+Hard limit: **5000 chars** per pill/capsule. If content exceeds it, `pill_store` rejects the call.
+
+---
+
+## Rules
+
+- **Search before creating**: `pill_search` / `capsule_search` before saving to avoid duplicates.
+- **Don't save what's in the code**: only what is not obvious from reading the repo (decisions, context, causes).
+- **Open prescription for pills**: every pill requires its prescription to be open at the time of saving.
