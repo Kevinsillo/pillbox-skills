@@ -83,7 +83,16 @@ install_pillbox=$(echo "${install_pillbox:-s}" | tr '[:upper:]' '[:lower:]')
 
 # Ask about sdd skill, agents and commands
 echo ""
-echo "¿Instalar la skill 'sdd', sus agentes y commands? (recomendado si no tienes tus propios flujos de desarrollo guiado por specs)"
+echo "¿Instalar la skill 'sdd', sus agentes y commands? (recomendado)"
+echo ""
+echo "  SDD (Spec-Driven Development) es el flujo de trabajo oficial de Pillbox:"
+echo "  propuesta → specs → diseño → implementación → verificación."
+echo "  Incluye la skill 'sdd' y los agentes especializados (sdd-explorer, sdd-implementer, etc.)"
+echo ""
+echo "  Opción avanzada: si prefieres usar tus propios flujos de desarrollo, responde 'n'."
+echo "  Ten en cuenta que Pillbox está diseñado y probado sobre SDD, por lo que adaptar"
+echo "  flujos propios requiere conocer bien sus capacidades — no se garantiza un"
+echo "  funcionamiento mínimo de calidad sin ese conocimiento."
 read -rp "  [S/n]: " install_sdd
 install_sdd=$(echo "${install_sdd:-s}" | tr '[:upper:]' '[:lower:]')
 
