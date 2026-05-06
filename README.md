@@ -32,9 +32,11 @@ agents/          # Canonical agent content (platform-independent)
   sdd-archiver.md
   sdd-committer.md
   sdd-init.md
+commands/          # Command definitions (provider-independent)
+  sdd/             # SDD slash commands (/sdd:new, /sdd:continue, etc.)
 providers/
   configurations.json  # Per-provider frontmatter and install paths
-build-agents.sh        # Install script — detects providers and installs to home
+install.sh             # Install script — detects providers and installs to home
 ```
 
 ## What's included
@@ -44,13 +46,14 @@ build-agents.sh        # Install script — detects providers and installs to ho
 | `pillbox` skill | Skill | Technical usage guide for Pillbox MCP tools |
 | `sdd` skill | Skill | SDD orchestrator — coordinates the full spec-driven cycle |
 | `sdd-*` agents | Agents | Sub-agents for exploration, specs, design, implementation, verification |
+| `sdd` commands | Commands | `/sdd:new`, `/sdd:continue`, `/sdd:fix`, `/sdd:explore`, `/sdd:init`, `/sdd:status` |
 
 ## Installation
 
 Run the install script from the repo root:
 
 ```bash
-./skills/build-agents.sh
+./skills/install.sh
 ```
 
 The script:
@@ -63,10 +66,10 @@ Re-running the script overwrites existing files — use it to update after pulli
 
 ## Providers
 
-| Provider | Skills path | Agents path |
-|---|---|---|
-| Claude Code | `~/.claude/skills/` | `~/.claude/agents/` |
-| OpenCode | `~/.config/opencode/skills/` | `~/.config/opencode/agents/` |
+| Provider | Skills path | Agents path | Commands path |
+|---|---|---|---|
+| Claude Code | `~/.claude/skills/` | `~/.claude/agents/` | `~/.claude/commands/` |
+| OpenCode | `~/.config/opencode/skills/` | `~/.config/opencode/agents/` | `~/.config/opencode/commands/` |
 
 ## Pillbox skill only
 

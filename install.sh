@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Installs skills and agents to the user's home directory for each detected provider.
-# Usage: ./build-agents.sh
+# Installs skills, agents and commands to the user's home directory for each detected provider.
+# Usage: ./install.sh
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENTS_DIR="$SCRIPT_DIR/agents"
 SKILLS_DIR="$SCRIPT_DIR/skills"
+COMMANDS_DIR="$SCRIPT_DIR/commands"
 CONFIG="$SCRIPT_DIR/providers/configurations.json"
 
 expand_path() {
@@ -37,7 +38,6 @@ detected=()
 all_providers=$(jq -r 'keys[]' "$CONFIG")
 
 for provider in $all_providers; do
-  detect_path=$(expand_path "$(jq -r ".[$provider].detect" "$CONFIG")")  # use quotes
   detect_path=$(expand_path "$(jq -r ".[\"$provider\"].detect" "$CONFIG")")
   if [ -d "$detect_path" ]; then
     detected+=("$provider")
@@ -81,15 +81,16 @@ echo "¿Instalar la skill 'pillbox'? (recomendado — memoria persistente por pr
 read -rp "  [S/n]: " install_pillbox
 install_pillbox=$(echo "${install_pillbox:-s}" | tr '[:upper:]' '[:lower:]')
 
-# Ask about sdd skill and agents
+# Ask about sdd skill, agents and commands
 echo ""
-echo "¿Instalar la skill 'sdd' y sus agentes? (recomendado si no tienes tus propios flujos de desarrollo guiado por specs)"
+echo "¿Instalar la skill 'sdd', sus agentes y commands? (recomendado si no tienes tus propios flujos de desarrollo guiado por specs)"
 read -rp "  [S/n]: " install_sdd
 install_sdd=$(echo "${install_sdd:-s}" | tr '[:upper:]' '[:lower:]')
 
-# Build skill and agent filters
+# Build filters
 install_skills=()
 install_agents=()
+install_commands=()
 
 if [ "$install_pillbox" != "n" ]; then
   install_skills+=("pillbox")
@@ -98,11 +99,12 @@ fi
 if [ "$install_sdd" != "n" ]; then
   install_skills+=("sdd")
   install_agents+=("sdd")
+  install_commands+=("sdd")
 fi
 
-if [ ${#install_skills[@]} -eq 0 ] && [ ${#install_agents[@]} -eq 0 ]; then
+if [ ${#install_skills[@]} -eq 0 ] && [ ${#install_agents[@]} -eq 0 ] && [ ${#install_commands[@]} -eq 0 ]; then
   echo ""
-  echo "No se seleccionó ninguna skill ni agente. Saliendo."
+  echo "No se seleccionó ninguna skill, agente ni command. Saliendo."
   exit 0
 fi
 
@@ -110,6 +112,7 @@ fi
 for provider in "${selected[@]}"; do
   agents_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.agents" "$CONFIG")")
   skills_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.skills" "$CONFIG")")
+  commands_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.commands" "$CONFIG")")
 
   echo ""
   echo "Installing $provider"
@@ -119,7 +122,6 @@ for provider in "${selected[@]}"; do
     mkdir -p "$agents_path"
     agents=$(jq -r ".[\"$provider\"].agents | keys[]" "$CONFIG")
     for agent in $agents; do
-      # Filter: only install agents whose name starts with a selected prefix
       should_install=false
       for prefix in "${install_agents[@]}"; do
         if [[ "$agent" == "$prefix"* ]]; then
@@ -164,6 +166,26 @@ for provider in "${selected[@]}"; do
       mkdir -p "$skills_path/$skill_name"
       cp "$skill_file" "$skills_path/$skill_name/SKILL.md"
       echo "  ✓ skills/$skill_name/SKILL.md → $skills_path/$skill_name"
+    done
+  fi
+
+  # Commands
+  if [ ${#install_commands[@]} -gt 0 ]; then
+    for cmd_dir in "$COMMANDS_DIR"/*/; do
+      cmd_name=$(basename "$cmd_dir")
+
+      should_install=false
+      for name in "${install_commands[@]}"; do
+        if [ "$cmd_name" = "$name" ]; then
+          should_install=true
+          break
+        fi
+      done
+      if [ "$should_install" = false ]; then continue; fi
+
+      mkdir -p "$commands_path/$cmd_name"
+      cp "$cmd_dir"/*.md "$commands_path/$cmd_name/"
+      echo "  ✓ commands/$cmd_name/ → $commands_path/$cmd_name"
     done
   fi
 done

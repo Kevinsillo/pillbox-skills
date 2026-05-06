@@ -3,7 +3,8 @@
     "detect": "~/.claude",
     "paths": {
       "skills": "~/.claude/skills",
-      "agents": "~/.claude/agents"
+      "agents": "~/.claude/agents",
+      "commands": "~/.claude/commands"
     },
     "agents": {
       "sdd-architect": {
@@ -72,7 +73,8 @@
     "detect": "~/.config/opencode",
     "paths": {
       "skills": "~/.config/opencode/skills",
-      "agents": "~/.config/opencode/agents"
+      "agents": "~/.config/opencode/agents",
+      "commands": "~/.config/opencode/commands"
     },
     "agents": {
       "sdd-architect": {
