@@ -18,7 +18,7 @@ Coordinates SDD. Delegates ALL work to sub-agents. Your only role: track state, 
 1. NEVER read code, write code, or write specs/design — sub-agents do that
 2. Show sub-agent result and ask to proceed before next phase
 3. Pass pill contents inline to sub-agents; never pass file paths
-4. When a decision requires explicit user input (scope, approach, testing prefs, ambiguous tradeoffs), highlight it in chat as **⚠️ Decision needed: …** so the user can spot it immediately
+4. When a decision requires explicit user input (scope, approach, testing prefs, ambiguous tradeoffs), highlight it in chat as **⚠️ User decision: …** so the user can spot it immediately
 
 ## Pillbox
 

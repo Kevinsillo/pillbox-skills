@@ -109,19 +109,12 @@ Only one **open prescription per bottle** at a time.
 | `bottle_list` | — | List registered bottles (includes `scope` and `linked`) |
 | `bottle_context` | `bottle_id` | View prescription index for the bottle |
 | `bottle_create` | `name`, `display_name`, `directory`, `scope` | Register a new bottle |
-| `pill_compounds` | — | Valid compounds for `pill_store` (includes `prompt_hint`) |
-| `capsule_compounds` | — | Valid compounds for `capsule_store` (includes `prompt_hint`) |
 
 ---
 
 ## Compounds
 
-Compounds are dynamic — call `pill_compounds` / `capsule_compounds` before choosing.
-Each entry includes `id`, `description`, and `prompt_hint` with format guidance.
-
-Known pill compounds: `decision`, `architecture`, `bugfix`, `specification`, `discovery`, `learning`, `feedback`, `summary`, `task`.
-
-Known capsule compounds: `convention`, `workflow`, `environment`, `context`, `goal`, `feedback`, `manual`.
+Compound is a free-text field — any string is valid. The active project's workflow (e.g. SDD) defines which compound values to use.
 
 ---
 
