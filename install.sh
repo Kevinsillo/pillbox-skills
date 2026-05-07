@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # Installs skills, agents and commands to the user's home directory for each detected provider.
-# Usage: ./install.sh
+# Usage: ./install.sh [--yes|-y]
 
 set -euo pipefail
+
+AUTO_YES=false
+for arg in "$@"; do
+  case "$arg" in
+    --yes|-y) AUTO_YES=true ;;
+  esac
+done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENTS_DIR="$SCRIPT_DIR/agents"
@@ -56,7 +63,11 @@ for i in "${!detected[@]}"; do
 done
 echo "  [a] All"
 echo ""
-read -rp "Install to which providers? (e.g. 1 2 or a): " selection
+if [ "$AUTO_YES" = true ]; then
+  selection="a"
+else
+  read -rp "Install to which providers? (e.g. 1 2 or a): " selection
+fi
 
 selected=()
 if [ "$selection" = "a" ]; then
@@ -78,8 +89,13 @@ fi
 # Ask about pillbox skill
 echo ""
 echo "¿Instalar la skill 'pillbox'? (recomendado — memoria persistente por proyecto para agentes IA)"
-read -rp "  [S/n]: " install_pillbox
-install_pillbox=$(echo "${install_pillbox:-s}" | tr '[:upper:]' '[:lower:]')
+if [ "$AUTO_YES" = true ]; then
+  install_pillbox="s"
+  echo "  [S/n]: s (auto)"
+else
+  read -rp "  [S/n]: " install_pillbox
+  install_pillbox=$(echo "${install_pillbox:-s}" | tr '[:upper:]' '[:lower:]')
+fi
 
 # Ask about sdd skill, agents and commands
 echo ""
@@ -93,8 +109,13 @@ echo "  Opción avanzada: si prefieres usar tus propios flujos de desarrollo, re
 echo "  Ten en cuenta que Pillbox está diseñado y probado sobre SDD, por lo que adaptar"
 echo "  flujos propios requiere conocer bien sus capacidades — no se garantiza un"
 echo "  funcionamiento mínimo de calidad sin ese conocimiento."
-read -rp "  [S/n]: " install_sdd
-install_sdd=$(echo "${install_sdd:-s}" | tr '[:upper:]' '[:lower:]')
+if [ "$AUTO_YES" = true ]; then
+  install_sdd="s"
+  echo "  [S/n]: s (auto)"
+else
+  read -rp "  [S/n]: " install_sdd
+  install_sdd=$(echo "${install_sdd:-s}" | tr '[:upper:]' '[:lower:]')
+fi
 
 # Build filters
 install_skills=()
