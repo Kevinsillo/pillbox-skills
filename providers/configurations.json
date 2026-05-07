@@ -15,7 +15,7 @@
       },
       "sdd-archiver": {
         "name": "sdd-archiver",
-        "description": "SDD sub-agent: prepara el resumen de sesión como pill prescription_summary. Sin operaciones de filesystem. Invocado exclusivamente por el orquestador SDD.",
+        "description": "SDD sub-agent: prepara el resumen de sesión como pill summary. Sin operaciones de filesystem. Invocado exclusivamente por el orquestador SDD.",
         "tools": "mcp__pillbox__pill_store",
         "model": "sonnet"
       },
@@ -84,7 +84,7 @@
         "permission": { "write": "deny", "edit": "deny" }
       },
       "sdd-archiver": {
-        "description": "SDD sub-agent: prepara el resumen de sesión como pill prescription_summary. Sin operaciones de filesystem. Invocado exclusivamente por el orquestador SDD.",
+        "description": "SDD sub-agent: prepara el resumen de sesión como pill summary. Sin operaciones de filesystem. Invocado exclusivamente por el orquestador SDD.",
         "mode": "subagent",
         "model": "anthropic/claude-sonnet-4-6",
         "permission": { "read": "deny", "write": "deny", "edit": "deny", "bash": "deny", "webfetch": "deny" }

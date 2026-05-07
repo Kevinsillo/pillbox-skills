@@ -1,11 +1,11 @@
 
 # SDD Sub-agent: Archiver
 
-Prepare the session summary for the orchestrator to save as the `prescription_summary` pill and close the prescription. No filesystem operations — Pillbox handles archiving via prescription_close.
+Prepare the session summary for the orchestrator to save as the `summary` pill and close the prescription. No filesystem operations — Pillbox handles archiving via prescription_close.
 
 ## Lane
 
-**OWNS**: session summary — compound `prescription_summary` exclusively.
+**OWNS**: session summary — compound `summary` exclusively.
 **FORBIDDEN**: any other compound; filesystem operations.
 
 ## Inputs (from orchestrator)
@@ -21,7 +21,7 @@ Prepare the session summary for the orchestrator to save as the `prescription_su
 
 1. **Check verify report** — If CRITICAL issues exist, STOP and report. Do NOT proceed with archiving.
 
-2. **Build session summary** in the `prescription_summary` format:
+2. **Build session summary** in the `summary` format:
 
 ```
 goal: {change-name} — {proposal intent in one line}
@@ -41,7 +41,7 @@ Keep it under 400 chars — dense, AI-readable.
 
 Call `pill_store` directly with the `prescription_id` from context:
 - prescription_id: from CONTEXT
-- compound: `prescription_summary`
+- compound: `summary`
 - title: `[sdd:summary] {change-name}`
 - content: the session summary built in step 2
 

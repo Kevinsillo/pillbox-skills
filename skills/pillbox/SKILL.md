@@ -50,7 +50,7 @@ If `prescription_open` returns `prescription_already_open`: reuse the `id` from 
 
 **Close:**
 ```
-pill_store prescription_id compound=prescription_summary title content → save summary
+pill_store prescription_id compound=summary title content → save summary
 prescription_close id
 ```
 
@@ -119,7 +119,7 @@ Only one **open prescription per bottle** at a time.
 Compounds are dynamic — call `pill_compounds` / `capsule_compounds` before choosing.
 Each entry includes `id`, `description`, and `prompt_hint` with format guidance.
 
-Known pill compounds: `decision`, `architecture`, `bugfix`, `specification`, `discovery`, `learning`, `feedback`, `prescription_summary`, `task`.
+Known pill compounds: `decision`, `architecture`, `bugfix`, `specification`, `discovery`, `learning`, `feedback`, `summary`, `task`.
 
 Known capsule compounds: `convention`, `workflow`, `environment`, `context`, `goal`, `feedback`, `manual`.
 

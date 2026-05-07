@@ -37,7 +37,7 @@ Coordinates SDD. Delegates ALL work to sub-agents. Your only role: track state, 
 | Tasks | `sdd-planner` | `task` | `[sdd:tasks] Replace auth middleware with JWT` |
 | Bug | `sdd-explorer` + `sdd-proposer` | `bugfix` | `[sdd:bug] Crash on modal close` |
 | Verify report | `sdd-verifier` | `feedback` | `[sdd:verify] Replace auth middleware with JWT` |
-| Summary | `sdd-archiver` | `prescription_summary` | `[sdd:summary] Replace auth middleware with JWT` |
+| Summary | `sdd-archiver` | `summary` | `[sdd:summary] Replace auth middleware with JWT` |
 
 ### Prescription titles
 
@@ -56,7 +56,7 @@ Natural language, never kebab-case. Examples:
 - **Size**: target ~400 chars; soft limit ~2000. Above that: split into `[1]`/`[2]` or check for lane mixing.
 - **Structure**: lead line must be `Purpose:`, `Decision:`, or `Rule:` — then bullets or table, no narrative prose.
 - **Cross-references**: cite by pill ID (`see #75`) — never re-describe content from another pill.
-- **prescription_summary obligatorio**: guardar antes de `prescription_close`, o el contexto de la sesión se pierde.
+- **summary obligatorio**: guardar antes de `prescription_close`, o el contexto de la sesión se pierde.
 
 ### Sub-agent Launch Template
 
@@ -105,7 +105,7 @@ If two agents share compound + domain → serialize them or merge into one.
 | `sdd-planner` | task checklist referencing specs + plan | `task` | re-explaining specs/decisions |
 | `sdd-implementer` | writes real files; marks tasks `[x]` | (no new pills) | creating pills |
 | `sdd-verifier` | PASS/FAIL report against specs | `feedback` | rewriting specs |
-| `sdd-archiver` | session summary | `prescription_summary` | any other compound |
+| `sdd-archiver` | session summary | `summary` | any other compound |
 | `sdd-committer` | git commit (no Pillbox) | — | — |
 
 ## Session Start (shared)
