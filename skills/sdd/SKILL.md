@@ -164,7 +164,7 @@ Launch `sdd-explorer`. Show result.
 ### new
 
 Session start. `prescription_open title="[sdd:new] ..."` — e.g. `"[sdd:new] Replace auth middleware with JWT"` (if already open for this change → implicit continue).
-`TodoWrite`: [Load context ✓, Explore, Propose, Specs+Design, Plan, Implement, Verify, Archive]
+`TodoWrite`: [Load context ✓, Explore, Propose, Spec, Arch, Plan, Implement, Verify, Archive]
 
 1. `pill_search "sdd:spec"` + domain terms → related specs
 2. Launch `sdd-explorer`; show result; ask to proceed
@@ -183,8 +183,8 @@ Determine phase → `TodoWrite` (past phases ✓, current in_progress).
 | Existing pills | Next |
 |---|---|
 | No proposal | redirect → `sdd:new` |
-| No specs or design | launch `sdd-specifier` + `sdd-architect` (parallel) |
-| Specs+design, no tasks | launch `sdd-planner` |
+| No spec or arch | launch `sdd-specifier` + `sdd-architect` (parallel) |
+| Spec+arch, no tasks | launch `sdd-planner` |
 | Tasks not all `[x]` | launch `sdd-implementer` (batch by phase); after: `pill_revise tasks` marking `[x]` |
 | Tasks all `[x]`, no verify | launch `sdd-verifier` |
 | Verify PASS, no summary | launch `sdd-archiver` → `prescription_close` → launch `sdd-committer` |
