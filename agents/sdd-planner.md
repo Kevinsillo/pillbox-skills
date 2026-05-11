@@ -15,6 +15,7 @@ Break down the design into concrete, actionable implementation tasks organized b
 - Spec pills content (inline)
 - Design content (inline)
 - `sdd:config` pill content
+- Identity: user name and email
 
 ## Steps
 
@@ -78,3 +79,4 @@ Return `pills_saved: [{id, title}]` with the ID returned by `pill_store`. Call `
 - Testing tasks reference specific spec scenarios
 - If TDD = Yes in proposal: RED → GREEN → REFACTOR
 - Use hierarchical numbering: 1.1, 1.2, 2.1, etc.
+- Pass Identity from CONTEXT as author to every `pill_store` call

@@ -20,6 +20,7 @@ Create a change proposal with intent, scope, approach, and risks. Return it for 
   - `test_levels`: unit/integration/e2e (if yes)
   - `test_library`: chosen library (if yes)
   - `tdd`: yes/no (if yes)
+- Identity: user name and email
 
 ## Steps
 
@@ -100,3 +101,4 @@ Return `pills_saved: [{id, title}]` with all IDs saved.
 - Every proposal MUST have rollback plan and success criteria
 - Use concrete file paths in Affected Areas
 - Keep total content under 4000 chars (pill limit is 5000)
+- Pass Identity from CONTEXT as author to every `pill_store` call

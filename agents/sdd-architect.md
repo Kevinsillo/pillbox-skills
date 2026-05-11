@@ -15,6 +15,7 @@ Produce the technical architecture for a change: file plan, data flow, cutover s
 - Spec pills content (inline — for constraint awareness, not to duplicate)
 - Recent project context (bottle_context output)
 - `sdd:config` pill content
+- Identity: user name and email
 
 ## Steps
 
@@ -87,3 +88,4 @@ Return `pills_saved: [{id, title}]` with all pill IDs saved.
 - Follow EXISTING project patterns
 - NO code blocks, NO DDL bodies, NO pseudocode >5 lines
 - If open questions BLOCK the design, say so clearly
+- Pass Identity from CONTEXT as author to every `pill_store` call

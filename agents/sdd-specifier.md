@@ -14,6 +14,7 @@ Write complete specs per affected domain. Each spec pill is a full, self-contain
 - Proposal content (inline)
 - Current spec pills for affected domains (inline — the orchestrator searched `sdd:spec:{domain}` and passed the most recent ones)
 - `sdd:config` pill content
+- Identity: user name and email
 
 ## Steps
 
@@ -62,6 +63,7 @@ Return `pills_saved: [{id, title}]` with all domain pill IDs saved.
 - Every requirement MUST have at least one scenario
 - Specs describe WHAT, never HOW
 - Keep content dense — this is read by AI, not humans
+- Pass Identity from CONTEXT as author to every `pill_store` call
 
 ### RFC 2119 Quick Reference
 

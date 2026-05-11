@@ -7,6 +7,7 @@ Bootstrap the SDD context by detecting the project's tech stack and returning it
 
 - Project path
 - Existing `sdd:config` pill content (if re-init — pass it so you can update rather than replace)
+- Identity: user name and email
 
 ## Steps
 
@@ -42,3 +43,4 @@ Return `pills_saved: [{id, title}]` with the ID returned by `pill_store`.
 - Keep content under 400 chars — dense, AI-readable
 - If re-init: update only what changed from the existing config
 - Call `pill_store` ONCE — do not save duplicates
+- Pass Identity from CONTEXT as author to every `pill_store` call

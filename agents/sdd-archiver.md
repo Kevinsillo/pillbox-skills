@@ -16,6 +16,7 @@ Prepare the session summary for the orchestrator to save as the `summary` pill a
 - Tasks content (inline — for deliverables list)
 - Files changed list (from implementer return value)
 - `sdd:config` pill content
+- Identity: user name and email
 
 ## Steps
 
@@ -53,3 +54,4 @@ Return `pills_saved: [{id, title}]`. After receiving this, the orchestrator will
 - Keep summary under 400 chars — it's the entry point for future sessions
 - The `found:` line is the most valuable part — capture non-obvious learnings
 - Omit `found:` if there are no surprising discoveries
+- Pass Identity from CONTEXT as author to every `pill_store` call

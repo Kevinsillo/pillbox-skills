@@ -18,6 +18,7 @@ Implement assigned tasks by writing actual code. Follow specs (WHAT) and design 
 - Proposal content (inline)
 - `sdd:config` pill content
 - Coding skill paths (from orchestrator's skill discovery)
+- Identity: user name and email
 
 ## Steps
 
@@ -88,3 +89,4 @@ Return `pills_saved: [{id, title}]` (empty array if nothing saved).
 - NEVER implement tasks not assigned to you
 - Load and follow coding skills passed by the orchestrator
 - **files_changed list is mandatory** — the committer depends on it
+- Pass Identity from CONTEXT as author to every `pill_store` call

@@ -65,6 +65,7 @@ Invoke via Agent tool with `subagent_type: sdd-{agent}` and this prompt:
 ```
 CONTEXT:
 - Project: {path} | Change: {name} | Prescription ID: {id}
+- Identity: {"name": "...", "email": "..."}   ← from ~/.pillbox/identity.json; use as author in every pill_store call
 - Config: {sdd:config content}
 - Recent sessions: {bottle_context output}   ← index only, no pills
 - Current session pills: {prescription_context output}   ← omit if new session
@@ -108,14 +109,26 @@ If two agents share compound + domain → serialize them or merge into one.
 | `sdd-archiver` | session summary | `summary` | any other compound |
 | `sdd-committer` | git commit (no Pillbox) | — | — |
 
+## Identity Resolution (shared)
+
+Run once per session, before opening any prescription or storing any pill:
+
+1. Read `~/.pillbox/identity.json` → if it exists, load `name` + `email` as `$identity`.
+2. If missing: run `git config user.name` + `git config user.email`.
+   - On success: write `~/.pillbox/identity.json` with `{"name": "...", "email": "..."}` → store as `$identity`.
+3. If git config fails or returns empty: ask the user for name and email → write `~/.pillbox/identity.json` → store as `$identity`.
+
+Pass `$identity` as the `Identity` field in every sub-agent launch (see Launch Template) and in every `prescription_open` call.
+
 ## Session Start (shared)
 
 Run at the start of every action that needs project context:
-1. `capsule_search "{terms}"` → user prefs
-2. `bottle_list` → `bottle_id`; if no bottle exists → `bottle_create` first, then use the new `bottle_id`
-3. `bottle_context bottle_id` → prescription index; if an open prescription exists for this change, note its `id`
-4. If open prescription: `prescription_context prescription_id` → recover pills from that session
-5. `pill_search "sdd:config"` → `pill_read` → config
+1. Identity Resolution (see above)
+2. `capsule_search "{terms}"` → user prefs
+3. `bottle_list` → `bottle_id`; if no bottle exists → `bottle_create` first, then use the new `bottle_id`
+4. `bottle_context bottle_id` → prescription index; if an open prescription exists for this change, note its `id`
+5. If open prescription: `prescription_context prescription_id` → recover pills from that session
+6. `pill_search "sdd:config"` → `pill_read` → config
 
 `bottle_context` gives the index (all sessions, dates, pill_count). `prescription_context` gives the actual pills of one session — use it to recover previous work before passing pills inline to sub-agents.
 

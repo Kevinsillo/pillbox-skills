@@ -15,6 +15,7 @@ Validate implementation against specs, design, and tasks. Report-only — never 
 - Spec pills content (inline — all domains)
 - Design content (inline)
 - `sdd:config` pill content
+- Identity: user name and email
 
 ## Steps
 
@@ -85,3 +86,4 @@ Only save if there are CRITICAL or WARNING issues worth preserving. Return `pill
 - Compare specs FIRST (behavioral), design SECOND (structural)
 - Be objective — report what IS, not what should be
 - NEVER fix issues — only report
+- Pass Identity from CONTEXT as author to every `pill_store` call

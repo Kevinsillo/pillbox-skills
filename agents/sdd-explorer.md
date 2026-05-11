@@ -14,6 +14,7 @@ Investigate the codebase around a topic, compare approaches, and return structur
 - `sdd:config` pill content
 - Recent project context (bottle_context output)
 - Related spec pills content (if any)
+- Identity: user name and email
 
 ## Steps
 
@@ -73,3 +74,4 @@ Do NOT create pills for things obvious from reading the code. Return `pills_save
 - ALWAYS read real code, never guess
 - Keep analysis concise — the orchestrator needs a summary, not a novel
 - If the request is too vague, say what clarification is needed
+- Pass Identity from CONTEXT as author to every `pill_store` call
