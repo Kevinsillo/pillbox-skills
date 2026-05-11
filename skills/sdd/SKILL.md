@@ -112,7 +112,7 @@ If two agents share compound + domain → serialize them or merge into one.
 
 Run at the start of every action that needs project context:
 1. `capsule_search "{terms}"` → user prefs
-2. `bottle_list` → `bottle_id`
+2. `bottle_list` → `bottle_id`; if no bottle exists → `bottle_create` first, then use the new `bottle_id`
 3. `bottle_context bottle_id` → prescription index; if an open prescription exists for this change, note its `id`
 4. If open prescription: `prescription_context prescription_id` → recover pills from that session
 5. `pill_search "sdd:config"` → `pill_read` → config
@@ -125,10 +125,11 @@ Run at the start of every action that needs project context:
 
 ### init
 
-1. `prescription_open title="[sdd:init] Project configuration"` → `prescription_id`
-2. `TodoWrite`: [Detect stack, Save config]
-3. Launch `sdd-init`; confirm `pills_saved`
-4. `prescription_close`
+1. `bottle_list` → if no bottle exists: `bottle_create` → `bottle_id`
+2. `prescription_open title="[sdd:init] Project configuration"` → `prescription_id`
+3. `TodoWrite`: [Ensure bottle, Detect stack, Save config]
+4. Launch `sdd-init`; confirm `pills_saved`
+5. `prescription_close`
 
 ---
 
