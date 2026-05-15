@@ -14,7 +14,7 @@ Produce the technical architecture for a change: file plan, data flow, cutover s
 - Proposal content (inline)
 - Spec pills content (inline — for constraint awareness, not to duplicate)
 - Recent project context (bottle_context output)
-- `sdd:config` pill content
+- Project config pill content
 - Identity: user name and email
 
 ## Steps
@@ -62,23 +62,13 @@ Rationale: {Why}
 
 ## Pills to Save
 
-Call `pill_store` directly for EACH architecture decision. Use `prescription_id` from context:
+Call `pill_store` ONCE with the full design (decisions + data flow + file plan + cutover + rollback + open questions). Use `prescription_id` from context:
 - prescription_id: from CONTEXT
 - compound: `architecture`
-- title: `[sdd:arch] {decision title}`
-- content (under 300 chars, no code):
-  ```
-  chosen: {X}
-  alternatives: {Y}
-  why: {Z}
-  ```
+- title: `{change-name}` (e.g. `Replace auth middleware with JWT`)
+- content: dense markdown — target ~400 chars, soft limit ~2000. If the design doesn't fit, split into `[1]`/`[2]` (same compound, suffix the title) — never split by section type.
 
-Save one additional pill for the file plan if it has >5 files:
-- compound: `architecture`
-- title: `[sdd:arch:files] {change-name}`
-- content: file plan as compact table (one line per file)
-
-Return `pills_saved: [{id, title}]` with all pill IDs saved.
+Return `pills_saved: [{id, title}]` with the ID(s) returned by `pill_store`.
 
 ## Rules
 
@@ -89,3 +79,4 @@ Return `pills_saved: [{id, title}]` with all pill IDs saved.
 - NO code blocks, NO DDL bodies, NO pseudocode >5 lines
 - If open questions BLOCK the design, say so clearly
 - Pass Identity from CONTEXT as author to every `pill_store` call
+- **Mid-cycle design update**: if invoked with an existing architecture pill ID and instructions to update it (e.g. implementer reported a justified deviation), call `pill_revise` on that pill — do NOT create a new one. The pill must always reflect the design as actually built.

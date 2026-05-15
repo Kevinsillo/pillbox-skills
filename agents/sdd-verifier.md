@@ -14,7 +14,7 @@ Validate implementation against specs, design, and tasks. Report-only — never 
 - Tasks pill content (inline — with completion status)
 - Spec pills content (inline — all domains)
 - Design content (inline)
-- `sdd:config` pill content
+- Project config pill content
 - Identity: user name and email
 
 ## Steps
@@ -75,7 +75,7 @@ Validate implementation against specs, design, and tasks. Report-only — never 
 
 Call `pill_store` directly for critical findings not already captured. Use `prescription_id` from context:
 - prescription_id: from CONTEXT
-- compound: `feedback`, title: `[sdd:verify] {change-name}`
+- compound: `feedback`, title: `Verify: {change-name}`
 - content: condensed verdict + critical issues (under 400 chars)
 
 Only save if there are CRITICAL or WARNING issues worth preserving. Return `pills_saved: [{id, title}]` (empty array if nothing saved).

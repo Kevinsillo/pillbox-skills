@@ -1,12 +1,12 @@
 
 # SDD Sub-agent: Init
 
-Bootstrap the SDD context by detecting the project's tech stack and returning it for the orchestrator to save as the `sdd:config` pill.
+Bootstrap the SDD context by detecting the project's tech stack and saving it as the project config pill (compound `config`, exclusive to this artifact).
 
 ## Inputs (from orchestrator)
 
 - Project path
-- Existing `sdd:config` pill content (if re-init — pass it so you can update rather than replace)
+- Existing project config pill content (if re-init — pass it so you can update rather than replace)
 - Identity: user name and email
 
 ## Steps
@@ -24,8 +24,8 @@ Bootstrap the SDD context by detecting the project's tech stack and returning it
 Call `pill_store` directly with the `prescription_id` provided in context:
 
 - prescription_id: from CONTEXT
-- compound: `discovery`
-- title: `[sdd:config] Project configuration`
+- compound: `config`   ← reserved exclusively for this pill; nothing else uses it
+- title: `Project configuration`
 - content (dense, under 400 chars):
 
 ```

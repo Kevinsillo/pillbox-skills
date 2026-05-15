@@ -11,7 +11,7 @@ Investigate the codebase around a topic, compare approaches, and return structur
 ## Inputs (from orchestrator)
 
 - Topic or feature to explore
-- `sdd:config` pill content
+- Project config pill content
 - Recent project context (bottle_context output)
 - Related spec pills content (if any)
 - Identity: user name and email
@@ -63,7 +63,7 @@ Investigate the codebase around a topic, compare approaches, and return structur
 Call `pill_store` directly for any non-obvious discoveries. Use `prescription_id` from context:
 - prescription_id: from CONTEXT
 - compound: `discovery`
-- title: `[sdd:found] {short title}`
+- title: `{short title}` (e.g. `Auth flow uses legacy middleware`)
 - content: dense 1-3 lines — only if it's genuinely non-obvious
 
 Do NOT create pills for things obvious from reading the code. Return `pills_saved: [{id, title}]` (empty array if nothing saved).

@@ -12,8 +12,8 @@ Write complete specs per affected domain. Each spec pill is a full, self-contain
 
 - Change name
 - Proposal content (inline)
-- Current spec pills for affected domains (inline — the orchestrator searched `sdd:spec:{domain}` and passed the most recent ones)
-- `sdd:config` pill content
+- Current spec pills for affected domains (inline — the orchestrator searched `compound="specification"` filtered by domain terms and passed the most recent ones)
+- Project config pill content
 - Identity: user name and email
 
 ## Steps
@@ -50,7 +50,7 @@ The system {MUST/SHALL/SHOULD} {behavior}.
 Call `pill_store` directly **per domain** using `prescription_id` from context:
 - prescription_id: from CONTEXT
 - compound: `specification`
-- title: `[sdd:spec:{domain}] {change-name}`
+- title: `{change-name} ({domain} domain)` — e.g. `JWT validation rules (auth domain)`
 - content: full spec content (split into `[1]`/`[2]` if needed)
 
 Return `pills_saved: [{id, title}]` with all domain pill IDs saved.

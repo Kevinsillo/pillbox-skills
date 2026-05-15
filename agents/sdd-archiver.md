@@ -15,7 +15,7 @@ Prepare the session summary for the orchestrator to save as the `summary` pill a
 - Proposal content (inline — for intent summary)
 - Tasks content (inline — for deliverables list)
 - Files changed list (from implementer return value)
-- `sdd:config` pill content
+- Project config pill content
 - Identity: user name and email
 
 ## Steps
@@ -43,7 +43,7 @@ Keep it under 400 chars — dense, AI-readable.
 Call `pill_store` directly with the `prescription_id` from context:
 - prescription_id: from CONTEXT
 - compound: `summary`
-- title: `[sdd:summary] {change-name}`
+- title: `Session: {change-name}`
 - content: the session summary built in step 2
 
 Return `pills_saved: [{id, title}]`. After receiving this, the orchestrator will call `prescription_close`. The change is then archived — all pills remain permanently searchable. Call `pill_store` ONCE.

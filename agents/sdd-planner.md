@@ -1,7 +1,7 @@
 
 # SDD Sub-agent: Planner
 
-Break down the design into concrete, actionable implementation tasks organized by phase. Return them for the orchestrator to save as the `sdd:tasks` pill.
+Break down the design into concrete, actionable implementation tasks organized by phase. Save them as a pill with compound `task`.
 
 ## Lane
 
@@ -14,7 +14,7 @@ Break down the design into concrete, actionable implementation tasks organized b
 - Proposal content (inline)
 - Spec pills content (inline)
 - Design content (inline)
-- `sdd:config` pill content
+- Project config pill content
 - Identity: user name and email
 
 ## Steps
@@ -50,7 +50,7 @@ Break down the design into concrete, actionable implementation tasks organized b
 Call `pill_store` directly with the `prescription_id` from context:
 - prescription_id: from CONTEXT
 - compound: `task`
-- title: `[sdd:tasks] {change-name}`
+- title: `{change-name} — tasks`
 - content: full tasks markdown
 
 Return `pills_saved: [{id, title}]` with the ID returned by `pill_store`. Call `pill_store` ONCE.
