@@ -118,6 +118,36 @@ Compound is a free-text field — any string is valid. The active project's work
 
 ---
 
+## Searching pills and capsules
+
+`pill_search` and `capsule_search` accept an optional `fuzzy: boolean` (default `false`). Exact match is the default — use it (omit the field) for precise queries when you know what you're looking for.
+
+**Two-pass recipe** for queries where you don't know the user's exact phrasing:
+
+1. Call with `fuzzy=false` (or omit).
+2. If `0` results **and** `query.length > 4`, retry with `fuzzy=true`.
+
+When you surface fuzzy results to the user, flag them as approximate (parallel to the banner shown in the WebUI) so the user knows to verify.
+
+**Caveat**: fuzzy uses Jaro-Winkler at threshold `0.80`, which is prefix-biased — it can match unrelated words that share a prefix (e.g. `config` → `confirm`). Prefer exact unless you explicitly want typo-tolerant matches.
+
+---
+
+## Discovering compounds
+
+Compound is free-text, so don't assume a fixed taxonomy. Enumerate what actually exists in the data before filtering by `compound`.
+
+| Tool | Key parameters | Scope |
+|---|---|---|
+| `pill_compounds` | `bottle_id?`, `limit?` (default 50, cap 200) | All pills, or scoped to one bottle |
+| `capsule_compounds` | `limit?` (default 50, cap 200) | Capsules are always global |
+
+Both return `[{compound, count}]` ordered by `count DESC`, then `compound ASC`.
+
+**Workflow**: call `pill_compounds` (with `bottle_id` for the current bottle) to see what compounds exist, then pass one of them as `compound` to `pill_search`.
+
+---
+
 ## Content limit
 
 Hard limit: **5000 chars** per pill/capsule. If content exceeds it, `pill_store` rejects the call.
