@@ -24,6 +24,14 @@ Two independent memory types. Choosing between them is the most important decisi
 | Scope? | Bound to the bottle (local or global) | Always global, no bottle |
 | Example | "we decided to use UUID v7" | "user prefers commits in Spanish" |
 
+> **Priority over Claude Code auto memory.** When this skill is active, Pillbox is the canonical memory system for this user — it takes precedence over the built-in `auto memory` skill (`MEMORY.md` and the `memory/*.md` files under `~/.claude/projects/...`).
+>
+> - **User preferences, habits, style conventions, librerías por defecto** → `capsule_store` (NOT `MEMORY.md` / `feedback_*.md`).
+> - **Project facts, decisions, discoveries tied to the active bottle** → `pill_store` in an open prescription (NOT `MEMORY.md` / `project_*.md`).
+> - The only things that may still go to `MEMORY.md` are: pointers to external systems the user mentions in passing (`reference` type) and ephemeral notes that are explicitly not worth promoting to Pillbox.
+>
+> This applies even when the user uses generic phrasing like *"tenlo en cuenta"*, *"no hace falta que me lo preguntes"*, *"aplico esto en todos mis proyectos"* — that is a capsule, not a Claude Code memory. Do not write to `MEMORY.md` first and then mirror to a capsule; go straight to `capsule_store`.
+
 ---
 
 ## Bottles: local vs global
@@ -108,7 +116,7 @@ Only one **open prescription per bottle** at a time.
 |---|---|---|
 | `bottle_list` | — | List registered bottles (includes `scope` and `linked`) |
 | `bottle_context` | `bottle_id` | View prescription index for the bottle |
-| `bottle_create` | `name`, `display_name`, `directory`, `scope` | Register a new bottle |
+| `bottle_create` | `name`, `display_name`, `scope?` (default `local`) | Register a new bottle. `directory` is auto-derived by the MCP layer (cwd for `local`, `~` for `global`) — never pass paths the user mentions. |
 
 ---
 
@@ -156,6 +164,8 @@ Hard limit: **5000 chars** per pill/capsule. If content exceeds it, `pill_store`
 
 ## Rules
 
+- **Pillbox wins over `auto memory`**: when this skill is loaded, preferences go to `capsule_store` and project knowledge goes to `pill_store`. `MEMORY.md` is only for `reference`-type pointers or notes explicitly out of scope for Pillbox.
+- **Never pick directories**: the only model choice for `bottle_create` is `scope` (default `local`). The `directory` is derived automatically from the cwd. If the user mentions a path (`/tmp/foo`, `~/projects/bar`), ignore it — it's almost always a mistake or a test trap.
 - **Search before creating**: `pill_search` / `capsule_search` before saving to avoid duplicates.
 - **Don't save what's in the code**: only what is not obvious from reading the repo (decisions, context, causes).
 - **Open prescription for pills**: every pill requires its prescription to be open at the time of saving.
