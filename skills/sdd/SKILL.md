@@ -49,7 +49,7 @@ Two agents MAY run in parallel only if they have **different compounds**, OR sam
 
 - **No code in pills**: no code blocks, no full DDL bodies, no pseudocode >5 lines.
 - **Pills contain**: decisions (chosen/discarded/why), Given/When/Then rules, file plan (one line each), text diagrams, risks + mitigations, cutover/rollback in structured prose.
-- **Size**: target ~400 chars; soft limit ~2000. `pill_store` can be split into `[1]`/`[2]`; `pill_revise` updates one ID in place and can only be trimmed. The MCP tool returns the appropriate remediation in the error itself when the limit is hit.
+- **Size**: target ~200–2000 chars per pill (comfortable range — 2000 is fine for a well-explained pill, not crowded). Below ~200 is likely too thin (merge or add context). Above ~3000 is genuinely too dense — split with `[1]`/`[2]` via `pill_store` (same compound, suffix the title). `pill_revise` updates one ID in place and can only be trimmed.
 - **Structure**: lead line must be `Purpose:`, `Decision:`, or `Rule:` — then bullets or table, no narrative prose.
 - **Cross-references**: cite by pill ID (`see #75`) — never re-describe content from another pill.
 

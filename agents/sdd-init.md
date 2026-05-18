@@ -26,7 +26,7 @@ Call `pill_store` directly with the `prescription_id` provided in context:
 - prescription_id: from CONTEXT
 - compound: `config`   ← reserved exclusively for this pill; nothing else uses it
 - title: `Project configuration`
-- content (dense, under 400 chars):
+- content (dense, target ~200–2000 chars):
 
 ```
 stack: {detected tech stack}
@@ -40,7 +40,7 @@ Return `pills_saved: [{id, title}]` with the ID returned by `pill_store`.
 ## Rules
 
 - ALWAYS detect real tech stack — never guess
-- Keep content under 400 chars — dense, AI-readable
+- Target ~200–2000 chars — dense, AI-readable
 - If re-init: update only what changed from the existing config
 - Call `pill_store` ONCE — do not save duplicates
 - Pass Identity from CONTEXT as author to every `pill_store` call

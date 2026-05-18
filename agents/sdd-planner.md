@@ -51,7 +51,7 @@ Call `pill_store` directly with the `prescription_id` from context:
 - prescription_id: from CONTEXT
 - compound: `task`
 - title: `{change-name} — tasks`
-- content: full tasks markdown
+- content: full tasks markdown — target ~200–2000 chars (2000 is fine for a well-explained task list). If it grows past ~3000, split into `[1]`/`[2]` (same compound, suffix the title).
 
 Return `pills_saved: [{id, title}]` with the ID returned by `pill_store`. Call `pill_store` ONCE.
 

@@ -66,7 +66,7 @@ Call `pill_store` ONCE with the full design (decisions + data flow + file plan +
 - prescription_id: from CONTEXT
 - compound: `architecture`
 - title: `{change-name}` (e.g. `Replace auth middleware with JWT`)
-- content: dense markdown — target ~400 chars, soft limit ~2000. If the design doesn't fit, split into `[1]`/`[2]` (same compound, suffix the title) — never split by section type.
+- content: dense markdown — target ~200–2000 chars (2000 is fine for a well-explained design). If it grows past ~3000, split into `[1]`/`[2]` (same compound, suffix the title) — never split by section type.
 
 Return `pills_saved: [{id, title}]` with the ID(s) returned by `pill_store`.
 

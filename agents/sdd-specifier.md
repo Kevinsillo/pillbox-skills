@@ -51,7 +51,7 @@ Call `pill_store` directly **per domain** using `prescription_id` from context:
 - prescription_id: from CONTEXT
 - compound: `specification`
 - title: `{change-name} ({domain} domain)` — e.g. `JWT validation rules (auth domain)`
-- content: full spec content (split into `[1]`/`[2]` if needed)
+- content: full spec content — target ~200–2000 chars per pill (2000 is fine for a well-explained spec). If a domain spec grows past ~3000, split into `[1]`/`[2]` (same compound, suffix the title).
 
 Return `pills_saved: [{id, title}]` with all domain pill IDs saved.
 

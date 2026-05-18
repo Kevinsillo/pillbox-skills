@@ -85,13 +85,13 @@ Call `pill_store` directly using `prescription_id` from context.
 - prescription_id: from CONTEXT
 - compound: `decision`
 - title: `{change-name}` (e.g. `Replace auth middleware with JWT`)
-- content: dense proposal markdown — target ~400 chars, soft limit ~2000. If it doesn't fit, split into `[1]`/`[2]` (same compound, suffix the title).
+- content: dense proposal markdown — target ~200–2000 chars (2000 is fine for a well-explained proposal). If it grows past ~3000, split into `[1]`/`[2]` (same compound, suffix the title).
 
 **2. Arch tradeoffs** (one per non-obvious scope/approach decision):
 - prescription_id: from CONTEXT
 - compound: `decision`
 - title: `{short title}` (e.g. `Stateless JWT over sessions`)
-- content: `chosen: X\ndiscarded: Y\nwhy: Z` (under 200 chars)
+- content: `chosen: X\ndiscarded: Y\nwhy: Z` — target ~200–2000 chars.
 
 Return `pills_saved: [{id, title}]` with all IDs saved.
 
@@ -100,6 +100,6 @@ Return `pills_saved: [{id, title}]` with all IDs saved.
 - NEVER ask the user questions directly — testing preferences come from the orchestrator
 - Every proposal MUST have rollback plan and success criteria
 - Use concrete file paths in Affected Areas
-- Target ~400 chars per pill, soft limit ~2000 (split with `[1]`/`[2]` above that)
+- Target ~200–2000 chars per pill; split with `[1]`/`[2]` above ~3000
 - Pass Identity from CONTEXT as author to every `pill_store` call
 - **Mid-cycle scope extension**: if invoked with an existing proposal pill ID and instructions to extend scope (e.g. implementer hit a blocking out-of-scope bug), call `pill_revise` on that pill — do NOT create a new one. The cycle's verifier compares against the current proposal state.

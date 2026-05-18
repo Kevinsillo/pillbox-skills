@@ -76,7 +76,7 @@ Validate implementation against specs, design, and tasks. Report-only — never 
 Call `pill_store` directly for critical findings not already captured. Use `prescription_id` from context:
 - prescription_id: from CONTEXT
 - compound: `feedback`, title: `Verify: {change-name}`
-- content: condensed verdict + critical issues (under 400 chars)
+- content: condensed verdict + critical issues — target ~200–2000 chars.
 
 Only save if there are CRITICAL or WARNING issues worth preserving. Return `pills_saved: [{id, title}]` (empty array if nothing saved).
 

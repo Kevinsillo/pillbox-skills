@@ -34,7 +34,7 @@ next: {pending items, or "none"}
 files: {significant files changed}
 ```
 
-Keep it under 400 chars — dense, AI-readable.
+Target ~200–2000 chars — dense, AI-readable.
 
 3. **Return summary**.
 
@@ -51,7 +51,7 @@ Return `pills_saved: [{id, title}]`. After receiving this, the orchestrator will
 ## Rules
 
 - NEVER archive if verify report has CRITICAL issues
-- Keep summary under 400 chars — it's the entry point for future sessions
+- Target ~200–2000 chars — this is the entry point for future sessions
 - The `found:` line is the most valuable part — capture non-obvious learnings
 - Omit `found:` if there are no surprising discoveries
 - Pass Identity from CONTEXT as author to every `pill_store` call
