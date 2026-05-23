@@ -54,7 +54,7 @@ bottle_list → bottle_id
 bottle_context bottle_id → see existing prescriptions
 prescription_open bottle_id title → prescription_id
 ```
-If `prescription_open` returns `prescription_already_open`: reuse the `id` from the `data` field.
+`prescription_open` always creates a new prescription. To reuse an existing open one, pick its `id` from `bottle_context` instead of calling `prescription_open`.
 
 **Close:**
 ```
@@ -108,7 +108,7 @@ Resolve before calling `prescription_open` or `pill_store`:
 | `prescription_read` | `id` | View prescription metadata |
 | `prescription_discard` | `id` | Delete prescription + all its pills in cascade |
 
-Only one **open prescription per bottle** at a time.
+Multiple **open prescriptions per bottle** are allowed at the same time.
 
 ### Bottles
 

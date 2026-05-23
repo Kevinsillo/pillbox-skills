@@ -145,7 +145,7 @@ Launch `sdd-explorer`. Show result.
 
 ### new
 
-`prescription_open title="{change name}"` — e.g. `"Replace auth middleware with JWT"` (if already open for this change → implicit continue).
+`prescription_open title="{change name}"` — e.g. `"Replace auth middleware with JWT"`. Always opens a new prescription; if one for this change is already open, pick its id from `bottle_context` and skip this call.
 `TodoWrite`: [Load context ✓, Explore, Propose, Spec, Arch, Plan, Implement, Verify, Archive]
 
 1. `pill_search compound="specification" query="{domain terms}"` → related specs
@@ -158,7 +158,7 @@ Launch `sdd-explorer`. Show result.
 
 ### continue
 
-`prescription_open title="{change name}"` (reuses open rx).
+Locate the open prescription for this change via `bottle_context` (or call `prescription_open` to start one if none exists).
 Determine phase → `TodoWrite` (past phases ✓, current in_progress).
 `pill_read` needed pills before each sub-agent.
 
