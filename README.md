@@ -81,8 +81,9 @@ Re-running the script overwrites existing files — use it to update after pulli
 If you only need the Pillbox skill (no SDD), the main installer handles it:
 
 ```bash
-curl -fsSL https://get.pillbox.dev | bash
-# or
+# Linux / macOS
+curl -fsSL https://raw.githubusercontent.com/Kevinsillo/pillbox/main/install.sh | bash
+# or, if pillbox is already installed
 pillbox skill install
 ```
 
