@@ -25,15 +25,18 @@ yaml_from_json() {
   local provider="$1"
   local agent="$2"
   local filter
+  # Top-level scalars are emitted JSON-quoted so values containing ':' (e.g.
+  # descriptions) stay valid YAML. Nested objects (opencode 'tools') quote keys
+  # ('pillbox*' needs it) and stringify values (booleans → false/true).
   filter=$(cat <<'EOF'
 .[$ENV.PROVIDER].agents[$ENV.AGENT] | to_entries[] |
 if (.value | type) == "object" then
   if (.value | length) > 0 then
     (.key + ":"),
-    (.value | to_entries[] | "  " + .key + ": " + .value)
+    (.value | to_entries[] | "  " + (.key | @json) + ": " + (.value | tostring))
   else empty end
 else
-  .key + ": " + (.value | @json | ltrimstr("\"") | rtrimstr("\""))
+  .key + ": " + (.value | @json)
 end
 EOF
 )
@@ -88,33 +91,33 @@ fi
 
 # Ask about pillbox skill
 echo ""
-echo "¿Instalar la skill 'pillbox'? (recomendado — memoria persistente por proyecto para agentes IA)"
+echo "Install the 'pillbox' skill? (recommended — persistent per-project memory for AI agents)"
 if [ "$AUTO_YES" = true ]; then
-  install_pillbox="s"
-  echo "  [S/n]: s (auto)"
+  install_pillbox="y"
+  echo "  [Y/n]: y (auto)"
 else
-  read -rp "  [S/n]: " install_pillbox
-  install_pillbox=$(echo "${install_pillbox:-s}" | tr '[:upper:]' '[:lower:]')
+  read -rp "  [Y/n]: " install_pillbox
+  install_pillbox=$(echo "${install_pillbox:-y}" | tr '[:upper:]' '[:lower:]')
 fi
 
 # Ask about sdd skill, agents and commands
 echo ""
-echo "¿Instalar la skill 'sdd', sus agentes y commands? (recomendado)"
+echo "Install the 'sdd' skill, its agents and commands? (recommended)"
 echo ""
-echo "  SDD (Spec-Driven Development) es el flujo de trabajo oficial de Pillbox:"
-echo "  propuesta → specs → diseño → implementación → verificación."
-echo "  Incluye la skill 'sdd' y los agentes especializados (sdd-explorer, sdd-implementer, etc.)"
+echo "  SDD (Spec-Driven Development) is Pillbox's official workflow:"
+echo "  proposal → specs → design → implementation → verification."
+echo "  Includes the 'sdd' skill and the specialized agents (sdd-explorer, sdd-implementer, etc.)"
 echo ""
-echo "  Opción avanzada: si prefieres usar tus propios flujos de desarrollo, responde 'n'."
-echo "  Ten en cuenta que Pillbox está diseñado y probado sobre SDD, por lo que adaptar"
-echo "  flujos propios requiere conocer bien sus capacidades — no se garantiza un"
-echo "  funcionamiento mínimo de calidad sin ese conocimiento."
+echo "  Advanced option: if you prefer your own development workflows, answer 'n'."
+echo "  Keep in mind that Pillbox is designed and tested on top of SDD, so adapting"
+echo "  your own workflows requires knowing its capabilities well — a minimum quality"
+echo "  of operation is not guaranteed without that knowledge."
 if [ "$AUTO_YES" = true ]; then
-  install_sdd="s"
-  echo "  [S/n]: s (auto)"
+  install_sdd="y"
+  echo "  [Y/n]: y (auto)"
 else
-  read -rp "  [S/n]: " install_sdd
-  install_sdd=$(echo "${install_sdd:-s}" | tr '[:upper:]' '[:lower:]')
+  read -rp "  [Y/n]: " install_sdd
+  install_sdd=$(echo "${install_sdd:-y}" | tr '[:upper:]' '[:lower:]')
 fi
 
 # Build filters
@@ -134,7 +137,7 @@ fi
 
 if [ ${#install_skills[@]} -eq 0 ] && [ ${#install_agents[@]} -eq 0 ] && [ ${#install_commands[@]} -eq 0 ]; then
   echo ""
-  echo "No se seleccionó ninguna skill, agente ni command. Saliendo."
+  echo "No skill, agent or command selected. Exiting."
   exit 0
 fi
 
@@ -143,6 +146,8 @@ for provider in "${selected[@]}"; do
   agents_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.agents" "$CONFIG")")
   skills_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.skills" "$CONFIG")")
   commands_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.commands" "$CONFIG")")
+  # Unexpanded skills path (keeps ~) for substitution into command bodies.
+  skills_path_raw=$(jq -r ".[\"$provider\"].paths.skills" "$CONFIG")
 
   echo ""
   echo "Installing $provider"
@@ -214,7 +219,12 @@ for provider in "${selected[@]}"; do
       if [ "$should_install" = false ]; then continue; fi
 
       mkdir -p "$commands_path/$cmd_name"
-      cp "$cmd_dir"/*.md "$commands_path/$cmd_name/"
+      # Substitute the per-provider skills path into command bodies so each
+      # command points at the right SKILL.md location for its provider.
+      for cmd_file in "$cmd_dir"*.md; do
+        sed "s|__SKILL_DIR__|$skills_path_raw|g" "$cmd_file" \
+          > "$commands_path/$cmd_name/$(basename "$cmd_file")"
+      done
       echo "  ✓ commands/$cmd_name/ → $commands_path/$cmd_name"
     done
   fi

@@ -1,2 +1,2 @@
-Load the `sdd` skill (`~/.claude/skills/sdd/SKILL.md`) and execute the **continue** action defined there.
+Load the `sdd` skill (`__SKILL_DIR__/sdd/SKILL.md`) and execute the **continue** action defined there.
 Change name: $ARGUMENTS
