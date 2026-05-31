@@ -36,7 +36,8 @@ commands/          # Command definitions (provider-independent)
   sdd/             # SDD slash commands (/sdd:new, /sdd:continue, etc.)
 providers/
   configurations.json  # Per-provider frontmatter and install paths
-install.sh             # Install script — detects providers and installs to home
+install.sh             # Install script (Linux/macOS) — detects providers and installs to home
+install.ps1            # Install script (Windows) — PowerShell counterpart of install.sh
 ```
 
 ## What's included
@@ -50,10 +51,14 @@ install.sh             # Install script — detects providers and installs to ho
 
 ## Installation
 
-Run the install script from the repo root:
+Run the install script for your platform from the repo root:
 
 ```bash
-./skills/install.sh
+./skills/install.sh      # Linux / macOS
+```
+
+```powershell
+.\skills\install.ps1     # Windows
 ```
 
 The script:
@@ -69,7 +74,7 @@ Re-running the script overwrites existing files — use it to update after pulli
 | Provider | Skills path | Agents path | Commands path |
 |---|---|---|---|
 | Claude Code | `~/.claude/skills/` | `~/.claude/agents/` | `~/.claude/commands/` |
-| OpenCode | `~/.config/opencode/skills/` | `~/.config/opencode/agents/` | `~/.config/opencode/commands/` |
+| OpenCode | `~/.config/opencode/skill/` | `~/.config/opencode/agent/` | `~/.config/opencode/command/` |
 
 ## Pillbox skill only
 
