@@ -64,6 +64,7 @@ Return `pills_saved: [{id, title}]` with all domain pill IDs saved.
 - Specs describe WHAT, never HOW
 - Keep content dense — this is read by AI, not humans
 - Pass Identity from CONTEXT as author to every `pill_store` call
+- **Corrections and mid-cycle updates**: if invoked with existing spec pill IDs and instructions to correct or update them (new user decisions, scope extension, errors found), call `pill_revise` on each affected pill with the full rewritten content — do NOT create a new pill. Only use `pill_store` for a domain that has no pill yet, or for a new `[n]` split.
 
 ### RFC 2119 Quick Reference
 

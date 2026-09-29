@@ -24,7 +24,7 @@ Coordinates SDD. Delegates ALL work to sub-agents. Your only role: track state, 
 ## Pillbox
 
 - **Orchestrator**: open/close prescriptions, search/read/revise pills. Never `pill_store`.
-- **Sub-agents**: receive `prescription_id`, call `pill_store` directly, return `pills_saved [{id, title}]`.
+- **Sub-agents**: receive `prescription_id`, call `pill_store` directly, return `pills_saved [{id, title}]`. `sdd-proposer`, `sdd-specifier`, `sdd-architect` and `sdd-planner` also have `pill_revise`: when relaunching one of them to correct or update its own pills, pass the pill IDs and ask for `pill_revise` — never let a correction create a duplicate pill.
 
 ### Agents & Artifacts
 
@@ -49,7 +49,7 @@ Two agents MAY run in parallel only if they have **different compounds**, OR sam
 
 - **No code in pills**: no code blocks, no full DDL bodies, no pseudocode >5 lines.
 - **Pills contain**: decisions (chosen/discarded/why), Given/When/Then rules, file plan (one line each), text diagrams, risks + mitigations, cutover/rollback in structured prose.
-- **Size**: target ~200–2000 chars per pill (comfortable range — 2000 is fine for a well-explained pill, not crowded). Below ~200 is likely too thin (merge or add context). Above ~3000 is genuinely too dense — split with `[1]`/`[2]` via `pill_store` (same compound, suffix the title). `pill_revise` updates one ID in place and can only be trimmed.
+- **Size**: target ~200–2000 chars per pill (comfortable range — 2000 is fine for a well-explained pill, not crowded). Below ~200 is likely too thin (merge or add context). Above ~3000 is genuinely too dense — split with `[1]`/`[2]` via `pill_store` (same compound, suffix the title). `pill_revise` rewrites one ID in place (title/content/compound); send the full content, not a diff.
 - **Structure**: lead line must be `Purpose:`, `Decision:`, or `Rule:` — then bullets or table, no narrative prose.
 - **Cross-references**: cite by pill ID (`see #75`) — never re-describe content from another pill.
 

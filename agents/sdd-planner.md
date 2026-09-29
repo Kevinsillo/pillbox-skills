@@ -80,3 +80,4 @@ Return `pills_saved: [{id, title}]` with the ID returned by `pill_store`. Call `
 - If TDD = Yes in proposal: RED → GREEN → REFACTOR
 - Use hierarchical numbering: 1.1, 1.2, 2.1, etc.
 - Pass Identity from CONTEXT as author to every `pill_store` call
+- **Corrections and replanning**: if invoked with existing tasks pill IDs and instructions to correct or extend them, call `pill_revise` on those pills with the full rewritten content (keeping `[x]` marks already done) — do NOT create a new pill.

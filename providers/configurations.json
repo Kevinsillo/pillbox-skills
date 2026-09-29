@@ -10,7 +10,7 @@
       "sdd-architect": {
         "name": "sdd-architect",
         "description": "SDD sub-agent: crea el plan de ficheros, flujo de datos, cutover y riesgos técnicos. Sin pseudocódigo ni código. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, Bash, mcp__pillbox__pill_store",
+        "tools": "Read, Bash, mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
         "model": "opus"
       },
       "sdd-archiver": {
@@ -46,19 +46,19 @@
       "sdd-planner": {
         "name": "sdd-planner",
         "description": "SDD sub-agent: descompone el diseño en tareas concretas por fases. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "mcp__pillbox__pill_store",
+        "tools": "mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
         "model": "sonnet"
       },
       "sdd-proposer": {
         "name": "sdd-proposer",
         "description": "SDD sub-agent: crea la propuesta de cambio con intención, alcance, enfoque y riesgos. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, mcp__pillbox__pill_store",
+        "tools": "Read, mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
         "model": "sonnet"
       },
       "sdd-specifier": {
         "name": "sdd-specifier",
         "description": "SDD sub-agent: escribe specs completas por dominio afectado en formato Given/When/Then. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, mcp__pillbox__pill_store",
+        "tools": "Read, mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
         "model": "sonnet"
       },
       "sdd-verifier": {
