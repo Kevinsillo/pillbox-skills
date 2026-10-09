@@ -25,9 +25,11 @@ yaml_from_json() {
   local provider="$1"
   local agent="$2"
   local filter
-  # Top-level scalars are emitted JSON-quoted so values containing ':' (e.g.
-  # descriptions) stay valid YAML. Nested objects (opencode 'tools') quote keys
-  # ('pillbox*' needs it) and stringify values (booleans → false/true).
+  # Top-level scalars and arrays are emitted as JSON (valid YAML) so values
+  # containing ':' (e.g. descriptions) stay safe and claude-code 'skills' becomes
+  # a flow sequence. Nested objects (opencode 'permission') quote keys
+  # ('pillbox_*' needs it) and stringify values (allow/deny). jq keeps key order,
+  # which matters because the last matching permission rule wins.
   filter=$(cat <<'EOF'
 .[$ENV.PROVIDER].agents[$ENV.AGENT] | to_entries[] |
 if (.value | type) == "object" then
@@ -105,8 +107,8 @@ echo ""
 echo "Install the 'sdd' skill, its agents and commands? (recommended)"
 echo ""
 echo "  SDD (Spec-Driven Development) is Pillbox's official workflow:"
-echo "  proposal → specs → design → implementation → verification."
-echo "  Includes the 'sdd' skill and the specialized agents (sdd-explorer, sdd-implementer, etc.)"
+echo "  explore → decision → design → implementation → verification."
+echo "  Includes the 'sdd' and 'code-quality' skills and the specialized agents (sdd-explorer, sdd-implementer, etc.)"
 echo ""
 echo "  Advanced option: if you prefer your own development workflows, answer 'n'."
 echo "  Keep in mind that Pillbox is designed and tested on top of SDD, so adapting"
@@ -130,7 +132,7 @@ if [ "$install_pillbox" != "n" ]; then
 fi
 
 if [ "$install_sdd" != "n" ]; then
-  install_skills+=("sdd")
+  install_skills+=("sdd" "code-quality")
   install_agents+=("sdd")
   install_commands+=("sdd")
 fi
@@ -146,7 +148,7 @@ for provider in "${selected[@]}"; do
   agents_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.agents" "$CONFIG")")
   skills_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.skills" "$CONFIG")")
   commands_path=$(expand_path "$(jq -r ".[\"$provider\"].paths.commands" "$CONFIG")")
-  # Unexpanded skills path (keeps ~) for substitution into command bodies.
+  # Unexpanded skills path (keeps ~) for substitution into agent and command bodies.
   skills_path_raw=$(jq -r ".[\"$provider\"].paths.skills" "$CONFIG")
 
   echo ""
@@ -155,6 +157,13 @@ for provider in "${selected[@]}"; do
   # Agents
   if [ ${#install_agents[@]} -gt 0 ]; then
     mkdir -p "$agents_path"
+    # Remove agents from previous versions that no longer exist in the config.
+    for legacy in sdd-proposer sdd-specifier sdd-architect sdd-planner sdd-archiver sdd-committer; do
+      if [ -f "$agents_path/$legacy.md" ]; then
+        rm -f "$agents_path/$legacy.md"
+        echo "  ✗ agents/$legacy.md removed (no longer part of SDD)"
+      fi
+    done
     agents=$(jq -r ".[\"$provider\"].agents | keys[]" "$CONFIG")
     for agent in $agents; do
       should_install=false
@@ -176,7 +185,7 @@ for provider in "${selected[@]}"; do
         yaml_from_json "$provider" "$agent"
         echo "---"
         echo ""
-        cat "$content_file"
+        sed "s|__SKILL_DIR__|$skills_path_raw|g" "$content_file"
       } > "$agents_path/$agent.md"
       echo "  ✓ agents/$agent.md → $agents_path"
     done

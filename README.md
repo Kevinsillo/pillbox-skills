@@ -21,17 +21,13 @@ Skills and agents that extend AI assistants with Pillbox support and Spec-Driven
 skills/          # Skill definitions (SKILL.md per skill)
   pillbox/       # Teaches the agent how to use Pillbox MCP tools
   sdd/           # SDD orchestrator — Spec-Driven Development workflow
+  code-quality/  # Quality bar for all code, followed by the SDD agents
 agents/          # Canonical agent content (platform-independent)
+  sdd-init.md
   sdd-explorer.md
-  sdd-proposer.md
-  sdd-specifier.md
-  sdd-architect.md
-  sdd-planner.md
+  sdd-designer.md
   sdd-implementer.md
   sdd-verifier.md
-  sdd-archiver.md
-  sdd-committer.md
-  sdd-init.md
 commands/          # Command definitions (provider-independent)
   sdd/             # SDD slash commands (/sdd:new, /sdd:continue, etc.)
 providers/
@@ -45,9 +41,20 @@ install.ps1            # Install script (Windows) — PowerShell counterpart of 
 | Item | Type | What it does |
 |---|---|---|
 | `pillbox` skill | Skill | Technical usage guide for Pillbox MCP tools |
-| `sdd` skill | Skill | SDD orchestrator — coordinates the full spec-driven cycle |
-| `sdd-*` agents | Agents | Sub-agents for exploration, specs, design, implementation, verification |
+| `sdd` skill | Skill | SDD orchestrator — coordinates the spec-driven cycle and writes the `decision` and `summary` pills itself |
+| `code-quality` skill | Skill | Single quality bar for code and structure — hexagonal architecture, clean code, KISS, idiomatic conventions, no hacks |
+| `sdd-*` agents | Agents | Five sub-agents: `init` (project config), `explorer` (facts + open questions), `designer` (specs + task batches), `implementer` (code + gate + commit), `verifier` (independent check) |
 | `sdd` commands | Commands | `/sdd:new`, `/sdd:continue`, `/sdd:fix`, `/sdd:explore`, `/sdd:init`, `/sdd:status` |
+
+## How the SDD cycle works
+
+1. `/sdd:new` — the explorer maps the code and returns open questions; the orchestrator asks the user **once** (questions, testing, tier, commit policy), writes the `decision` pill and launches the designer, which produces `specification` pills (only when there are behaviour rules) and one `task` pill per batch.
+2. `/sdd:continue` — the implementer runs batch after batch: code, gate commands, evidence in the `task` pill and a commit when authorized. Verification is proportional to the tier (`small`/`standard`: gate results + one spot check; `large`: independent verifier).
+3. Close — the orchestrator commits (when authorized at close), writes the `summary` pill, discards the specifications superseded by this change and closes the prescription.
+
+Code quality is part of the cycle and has a single source: the `code-quality` skill. Claude Code preloads it into the designer, implementer and verifier; OpenCode agents load it with the skill tool. The designer designs within its architecture, the implementer reviews its own diff against it before running the gate, and the verifier reports hacks that hide a failure as CRITICAL and any other breach of the skill as WARNING.
+
+Sub-agents receive **pill IDs**, never pasted content, and read what they need with the Pillbox MCP tools. Each compound has one owner (see the `sdd` skill; the implementer only marks progress and evidence in the designer's `task` pills) and a soft size target under the 5000-character hard limit; corrections revise pills in place instead of creating duplicates, and each domain keeps one current specification — a newer version carries `Supersedes: #id` and the old one is discarded at close.
 
 ## Installation
 
@@ -64,8 +71,9 @@ Run the install script for your platform from the repo root:
 The script:
 1. Detects installed providers (Claude Code at `~/.claude`, OpenCode at `~/.config/opencode`)
 2. Asks which providers to install to
-3. Copies skills to `~/.{provider}/skills/`
-4. Generates agent files with platform-specific frontmatter and copies to `~/.{provider}/agents/`
+3. Copies skills to `~/.{provider}/skills/` — `code-quality` is installed together with SDD, since the agents depend on it
+4. Generates agent files with platform-specific frontmatter (Claude Code `tools` and `skills`, OpenCode `permission`) and copies them to `~/.{provider}/agents/`
+5. Substitutes the provider's skills path into agent and command bodies
 
 Re-running the script overwrites existing files — use it to update after pulling changes.
 
@@ -74,7 +82,7 @@ Re-running the script overwrites existing files — use it to update after pulli
 | Provider | Skills path | Agents path | Commands path |
 |---|---|---|---|
 | Claude Code | `~/.claude/skills/` | `~/.claude/agents/` | `~/.claude/commands/` |
-| OpenCode | `~/.config/opencode/skill/` | `~/.config/opencode/agent/` | `~/.config/opencode/command/` |
+| OpenCode | `~/.config/opencode/skills/` | `~/.config/opencode/agents/` | `~/.config/opencode/commands/` |
 
 ## Pillbox skill only
 

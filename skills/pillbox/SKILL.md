@@ -8,7 +8,7 @@ description: >
 license: PolyForm-Noncommercial-1.0.0
 metadata:
   author: Kevin Illanas — https://github.com/Kevinsillo
-  version: 0.3.0
+  version: 0.4.0
   trigger: pillbox, "use pillbox", "persistent memory"
   tags: pillbox, memory, mcp
 ---
@@ -20,7 +20,7 @@ Two independent memory types. Choosing between them is the most important decisi
 | | **Pills** | **Capsules** |
 |---|---|---|
 | What it stores | Project knowledge (bottle) | User preferences and habits |
-| Requires prescription? | Yes — and it must be **open** | No |
+| Requires prescription? | Yes — **open** to store, revise or discard | No |
 | Scope? | Bound to the bottle (local or global) | Always global, no bottle |
 | Example | "we decided to use UUID v7" | "user prefers commits in Spanish" |
 
@@ -62,6 +62,16 @@ pill_store prescription_id compound=summary title content → save summary
 prescription_close id
 ```
 
+**Edit a pill in a closed prescription:**
+```
+pill_read id → prescription_id
+prescription_read prescription_id → note whether it was closed
+prescription_reopen prescription_id
+pill_revise / pill_discard
+prescription_close prescription_id   ← only if it was closed before
+```
+Reopening and closing again moves the prescription's close date.
+
 ---
 
 ## Author identity
@@ -83,10 +93,10 @@ Resolve before calling `prescription_open` or `pill_store`:
 | `pill_store` | `prescription_id`, `compound`, `title`, `content` | Save new knowledge |
 | `pill_search` | `query`, `bottle_id?`, `compound?`, `limit?` | Search before creating (avoid duplicates) |
 | `pill_read` | `id` | Read full content of a pill |
-| `pill_revise` | `id`, `patch{title?, content?}` | Update existing pill |
+| `pill_revise` | `id`, `title?`, `content?`, `compound?` | Rewrite an existing pill in place (send the full new content, not a diff) |
 | `pill_discard` | `id` | Soft-delete (irreversible) |
 
-`pill_store` requires an **open** prescription (`ended_at IS NULL`) — error `PrescriptionRequired` if not.
+`pill_store`, `pill_revise` and `pill_discard` require the pill's prescription to be **open** (`ended_at IS NULL`) — error `prescription_closed` if it is closed (reopen it first), `prescription_required` if it does not exist.
 
 ### Capsules
 
@@ -95,7 +105,7 @@ Resolve before calling `prescription_open` or `pill_store`:
 | `capsule_store` | `compound`, `title`, `content` | Save user preference/habit |
 | `capsule_search` | `query`, `compound?`, `limit?` | Search preferences at start or before creating |
 | `capsule_read` | `id` | Read full content |
-| `capsule_revise` | `id`, `patch{title?, content?, compound?}` | Update existing capsule |
+| `capsule_revise` | `id`, `title?`, `content?`, `compound?` | Rewrite an existing capsule in place |
 | `capsule_discard` | `id` | Soft-delete |
 
 ### Prescriptions
@@ -104,6 +114,7 @@ Resolve before calling `prescription_open` or `pill_store`:
 |---|---|---|
 | `prescription_open` | `bottle_id`, `title` | Start a work session |
 | `prescription_close` | `id` | End a session |
+| `prescription_reopen` | `id` | Reopen a closed prescription to add, revise or discard its pills (no-op if already open) |
 | `prescription_context` | `prescription_id` | Retrieve pills from an existing session |
 | `prescription_read` | `id` | View prescription metadata |
 | `prescription_discard` | `id` | Delete prescription + all its pills in cascade |
@@ -128,16 +139,11 @@ Compound is a free-text field — any string is valid. The active project's work
 
 ## Searching pills and capsules
 
-`pill_search` and `capsule_search` accept an optional `fuzzy: boolean` (default `false`). Exact match is the default — use it (omit the field) for precise queries when you know what you're looking for.
+`pill_search` and `capsule_search` run a strict full-text pass first; query terms are OR-joined, so rank and titles matter more than raw hit count. If the strict pass returns `0` results, the server **retries with fuzzy automatically** and marks the response with `used_fuzzy: true` — do not retry yourself. Pass `fuzzy=true` only to skip the strict pass from the start.
 
-**Two-pass recipe** for queries where you don't know the user's exact phrasing:
+When a response has `used_fuzzy: true`, flag the results to the user as approximate (parallel to the banner shown in the WebUI) so the user knows to verify.
 
-1. Call with `fuzzy=false` (or omit).
-2. If `0` results **and** `query.length > 4`, retry with `fuzzy=true`.
-
-When you surface fuzzy results to the user, flag them as approximate (parallel to the banner shown in the WebUI) so the user knows to verify.
-
-**Caveat**: fuzzy uses Jaro-Winkler at threshold `0.80`, which is prefix-biased — it can match unrelated words that share a prefix (e.g. `config` → `confirm`). Prefer exact unless you explicitly want typo-tolerant matches.
+**Caveat**: fuzzy uses Jaro-Winkler at threshold `0.80`, which is prefix-biased — it can match unrelated words that share a prefix (e.g. `config` → `confirm`). Treat `used_fuzzy: true` results with care, and force `fuzzy=true` only when you explicitly want typo-tolerant matches.
 
 ---
 
@@ -168,4 +174,4 @@ Hard limit: **5000 chars** per pill/capsule. If content exceeds it, `pill_store`
 - **Never pick directories**: the only model choice for `bottle_create` is `scope` (default `local`). The `directory` is derived automatically from the cwd. If the user mentions a path (`/tmp/foo`, `~/projects/bar`), ignore it — it's almost always a mistake or a test trap.
 - **Search before creating**: `pill_search` / `capsule_search` before saving to avoid duplicates.
 - **Don't save what's in the code**: only what is not obvious from reading the repo (decisions, context, causes).
-- **Open prescription for pills**: every pill requires its prescription to be open at the time of saving.
+- **Open prescription for pills**: every pill requires its prescription to be open at the time of storing, revising or discarding.

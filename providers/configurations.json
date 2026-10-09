@@ -7,64 +7,37 @@
       "commands": "~/.claude/commands"
     },
     "agents": {
-      "sdd-architect": {
-        "name": "sdd-architect",
-        "description": "SDD sub-agent: crea el plan de ficheros, flujo de datos, cutover y riesgos técnicos. Sin pseudocódigo ni código. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, Bash, mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
+      "sdd-designer": {
+        "name": "sdd-designer",
+        "description": "SDD sub-agent: escribe las specs Given/When/Then (si hay reglas de comportamiento) y los lotes de tareas con plan de ficheros, criterios de aceptación y comandos de verificación. Sin código. Invocado exclusivamente por el orquestador SDD.",
+        "tools": "Read, Bash, mcp__pillbox__pill_read, mcp__pillbox__pill_search, mcp__pillbox__prescription_context, mcp__pillbox__pill_store, mcp__pillbox__pill_revise, mcp__context7__resolve-library-id, mcp__context7__query-docs",
+        "skills": ["code-quality"],
         "model": "opus"
-      },
-      "sdd-archiver": {
-        "name": "sdd-archiver",
-        "description": "SDD sub-agent: prepara el resumen de sesión como pill summary. Sin operaciones de filesystem. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "mcp__pillbox__pill_store",
-        "model": "sonnet"
-      },
-      "sdd-committer": {
-        "name": "sdd-committer",
-        "description": "SDD sub-agent: crea el commit de git para los cambios implementados en el ciclo SDD. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Bash",
-        "model": "sonnet"
       },
       "sdd-explorer": {
         "name": "sdd-explorer",
-        "description": "SDD sub-agent: investiga el codebase en torno a un tema y devuelve análisis estructurado. Solo lectura. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, Bash, mcp__pillbox__pill_store",
+        "description": "SDD sub-agent: investiga el codebase en torno a un cambio y devuelve hechos, preguntas abiertas y nivel sugerido. Solo lectura. Invocado exclusivamente por el orquestador SDD.",
+        "tools": "Read, Bash, mcp__pillbox__pill_read, mcp__pillbox__pill_search, mcp__pillbox__prescription_context, mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
         "model": "sonnet"
       },
       "sdd-implementer": {
         "name": "sdd-implementer",
-        "description": "SDD sub-agent: implementa las tareas asignadas escribiendo código real. Sigue specs y diseño estrictamente. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, Write, Edit, Bash, mcp__pillbox__pill_store",
+        "description": "SDD sub-agent: implementa un lote de tareas escribiendo código real, ejecuta el gate, registra la evidencia en el pill de tareas y commitea si está autorizado. Invocado exclusivamente por el orquestador SDD.",
+        "tools": "Read, Write, Edit, Bash, mcp__pillbox__pill_read, mcp__pillbox__pill_search, mcp__pillbox__prescription_context, mcp__pillbox__pill_revise, mcp__context7__resolve-library-id, mcp__context7__query-docs",
+        "skills": ["code-quality"],
         "model": "opus"
       },
       "sdd-init": {
         "name": "sdd-init",
         "description": "SDD sub-agent: detecta el stack del proyecto y guarda la config inicial. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, Bash, mcp__pillbox__pill_store",
-        "model": "sonnet"
-      },
-      "sdd-planner": {
-        "name": "sdd-planner",
-        "description": "SDD sub-agent: descompone el diseño en tareas concretas por fases. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
-        "model": "sonnet"
-      },
-      "sdd-proposer": {
-        "name": "sdd-proposer",
-        "description": "SDD sub-agent: crea la propuesta de cambio con intención, alcance, enfoque y riesgos. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
-        "model": "sonnet"
-      },
-      "sdd-specifier": {
-        "name": "sdd-specifier",
-        "description": "SDD sub-agent: escribe specs completas por dominio afectado en formato Given/When/Then. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
+        "tools": "Read, Bash, mcp__pillbox__pill_read, mcp__pillbox__pill_store, mcp__pillbox__pill_revise",
         "model": "sonnet"
       },
       "sdd-verifier": {
         "name": "sdd-verifier",
-        "description": "SDD sub-agent: valida la implementación contra specs, diseño y tareas. Solo reporta — nunca corrige. Invocado exclusivamente por el orquestador SDD.",
-        "tools": "Read, Bash, mcp__pillbox__pill_store",
+        "description": "SDD sub-agent: valida la implementación contra specs, tareas y decisión, revisa la calidad del código y re-ejecuta los gates. Solo reporta — nunca corrige; en re-verificación revisa su propio feedback. Invocado exclusivamente por el orquestador SDD.",
+        "tools": "Read, Bash, mcp__pillbox__pill_read, mcp__pillbox__pill_search, mcp__pillbox__prescription_context, mcp__pillbox__pill_store, mcp__pillbox__pill_revise, mcp__context7__resolve-library-id, mcp__context7__query-docs",
+        "skills": ["code-quality"],
         "model": "sonnet"
       }
     }
@@ -72,60 +45,81 @@
   "opencode": {
     "detect": "~/.config/opencode",
     "paths": {
-      "skills": "~/.config/opencode/skill",
-      "agents": "~/.config/opencode/agent",
-      "commands": "~/.config/opencode/command"
+      "skills": "~/.config/opencode/skills",
+      "agents": "~/.config/opencode/agents",
+      "commands": "~/.config/opencode/commands"
     },
     "agents": {
-      "sdd-architect": {
-        "description": "SDD sub-agent: crea el plan de ficheros, flujo de datos, cutover y riesgos técnicos. Sin pseudocódigo ni código. Invocado exclusivamente por el orquestador SDD.",
+      "sdd-designer": {
+        "description": "SDD sub-agent: escribe las specs Given/When/Then (si hay reglas de comportamiento) y los lotes de tareas con plan de ficheros, criterios de aceptación y comandos de verificación. Sin código. Invocado exclusivamente por el orquestador SDD.",
         "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "webfetch": false, "pillbox*": true }
-      },
-      "sdd-archiver": {
-        "description": "SDD sub-agent: prepara el resumen de sesión como pill summary. Sin operaciones de filesystem. Invocado exclusivamente por el orquestador SDD.",
-        "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "bash": false, "webfetch": false, "pillbox*": true }
-      },
-      "sdd-committer": {
-        "description": "SDD sub-agent: crea el commit de git para los cambios implementados en el ciclo SDD. Invocado exclusivamente por el orquestador SDD.",
-        "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "webfetch": false, "pillbox*": false }
+        "permission": {
+          "edit": "deny",
+          "webfetch": "deny",
+          "pillbox_*": "deny",
+          "pillbox_pill_read": "allow",
+          "pillbox_pill_search": "allow",
+          "pillbox_prescription_context": "allow",
+          "pillbox_pill_store": "allow",
+          "pillbox_pill_revise": "allow",
+          "context7_*": "allow"
+        }
       },
       "sdd-explorer": {
-        "description": "SDD sub-agent: investiga el codebase en torno a un tema y devuelve análisis estructurado. Solo lectura. Invocado exclusivamente por el orquestador SDD.",
+        "description": "SDD sub-agent: investiga el codebase en torno a un cambio y devuelve hechos, preguntas abiertas y nivel sugerido. Solo lectura. Invocado exclusivamente por el orquestador SDD.",
         "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "webfetch": false, "pillbox*": true }
+        "permission": {
+          "edit": "deny",
+          "webfetch": "deny",
+          "pillbox_*": "deny",
+          "pillbox_pill_read": "allow",
+          "pillbox_pill_search": "allow",
+          "pillbox_prescription_context": "allow",
+          "pillbox_pill_store": "allow",
+          "pillbox_pill_revise": "allow",
+          "context7_*": "deny"
+        }
       },
       "sdd-implementer": {
-        "description": "SDD sub-agent: implementa las tareas asignadas escribiendo código real. Sigue specs y diseño estrictamente. Invocado exclusivamente por el orquestador SDD.",
+        "description": "SDD sub-agent: implementa un lote de tareas escribiendo código real, ejecuta el gate, registra la evidencia en el pill de tareas y commitea si está autorizado. Invocado exclusivamente por el orquestador SDD.",
         "mode": "subagent",
-        "tools": { "webfetch": false, "pillbox*": true }
+        "permission": {
+          "webfetch": "deny",
+          "pillbox_*": "deny",
+          "pillbox_pill_read": "allow",
+          "pillbox_pill_search": "allow",
+          "pillbox_prescription_context": "allow",
+          "pillbox_pill_revise": "allow",
+          "context7_*": "allow"
+        }
       },
       "sdd-init": {
         "description": "SDD sub-agent: detecta el stack del proyecto y guarda la config inicial. Invocado exclusivamente por el orquestador SDD.",
         "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "webfetch": false, "pillbox*": true }
-      },
-      "sdd-planner": {
-        "description": "SDD sub-agent: descompone el diseño en tareas concretas por fases. Invocado exclusivamente por el orquestador SDD.",
-        "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "bash": false, "webfetch": false, "pillbox*": true }
-      },
-      "sdd-proposer": {
-        "description": "SDD sub-agent: crea la propuesta de cambio con intención, alcance, enfoque y riesgos. Invocado exclusivamente por el orquestador SDD.",
-        "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "bash": false, "webfetch": false, "pillbox*": true }
-      },
-      "sdd-specifier": {
-        "description": "SDD sub-agent: escribe specs completas por dominio afectado en formato Given/When/Then. Invocado exclusivamente por el orquestador SDD.",
-        "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "bash": false, "webfetch": false, "pillbox*": true }
+        "permission": {
+          "edit": "deny",
+          "webfetch": "deny",
+          "pillbox_*": "deny",
+          "pillbox_pill_read": "allow",
+          "pillbox_pill_store": "allow",
+          "pillbox_pill_revise": "allow",
+          "context7_*": "deny"
+        }
       },
       "sdd-verifier": {
-        "description": "SDD sub-agent: valida la implementación contra specs, diseño y tareas. Solo reporta — nunca corrige. Invocado exclusivamente por el orquestador SDD.",
+        "description": "SDD sub-agent: valida la implementación contra specs, tareas y decisión, revisa la calidad del código y re-ejecuta los gates. Solo reporta — nunca corrige; en re-verificación revisa su propio feedback. Invocado exclusivamente por el orquestador SDD.",
         "mode": "subagent",
-        "tools": { "write": false, "edit": false, "patch": false, "webfetch": false, "pillbox*": true }
+        "permission": {
+          "edit": "deny",
+          "webfetch": "deny",
+          "pillbox_*": "deny",
+          "pillbox_pill_read": "allow",
+          "pillbox_pill_search": "allow",
+          "pillbox_prescription_context": "allow",
+          "pillbox_pill_store": "allow",
+          "pillbox_pill_revise": "allow",
+          "context7_*": "allow"
+        }
       }
     }
   }

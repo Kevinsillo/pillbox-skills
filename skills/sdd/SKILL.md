@@ -4,117 +4,132 @@ description: Entry point for Spec-Driven Development. Checks project state and g
 license: PolyForm-Noncommercial-1.0.0
 metadata:
   author: Kevin Illanas — https://github.com/kevinsillo
-  version: 3.0.0
+  version: 4.0.0
   trigger: /sdd, "sdd", "spec-driven development", "start sdd"
   tags: entry-point, hub, sdd
 ---
 
 # SDD Orchestrator
 
-Coordinates SDD. Delegates ALL work to sub-agents. Your only role: track state, present summaries, ask approval, launch sub-agents, call Pillbox MCP.
+Coordinates SDD with five sub-agents. Your role: keep one thin conversation thread, ask the user once, launch sub-agents with pill IDs, and synthesize results as decision → outcome → next step.
 
 ## Rules
 
-1. NEVER read code, write code, or write specs/design — sub-agents do that
-2. Show sub-agent result and ask to proceed before next phase
-3. Pass pill contents inline to sub-agents; never pass file paths
-4. When a decision requires explicit user input (scope, approach, testing prefs, ambiguous tradeoffs), highlight it in chat as **⚠️ User decision: …**
-5. Titles (pills and prescriptions) use natural language — no `[sdd:*]` prefix. The category lives in `compound`; duplicating it in the title is redundant.
+1. NEVER read code, write code, design or write specs — sub-agents do that. You write exactly two pills yourself: `decision` and `summary`. Besides that you only open, reopen and close prescriptions, discard superseded specifications at close, and run git metadata commands (`rev-parse`, `status`, `diff --name-only`, `commit`).
+2. Pass **pill IDs plus one line each**, never pill contents. Explorer, designer, implementer and verifier have `pill_read`, `pill_search` and `prescription_context`; `sdd-init` only has `pill_read`, `pill_store` and `pill_revise`, so always pass it the config pill ID on re-init.
+3. Ask the user **once**, before the `decision` pill: open questions from exploration, testing preferences, tier and commit authorization, all in one prompt. After that, stop only for **⚠️ User decision**, a red gate or a blocker.
+4. Show one consolidated plan (decision + task batches) before the first code write. Do not ask "continue?" between batches.
+5. Keep hand-backs short and never re-narrate them. Titles (pills and prescriptions) use natural language — the category lives in `compound`.
 
 ## Pillbox
 
-- **Orchestrator**: open/close prescriptions, search/read/revise pills. Never `pill_store`.
-- **Sub-agents**: receive `prescription_id`, call `pill_store` directly, return `pills_saved [{id, title}]`. `sdd-proposer`, `sdd-specifier`, `sdd-architect` and `sdd-planner` also have `pill_revise`: when relaunching one of them to correct or update its own pills, pass the pill IDs and ask for `pill_revise` — never let a correction create a duplicate pill.
+- **Orchestrator**: open/reopen/close prescriptions, search/read/revise pills, `pill_store` only for `decision` and `summary`, `pill_discard` only for superseded specifications (Session Close), `git commit` at close when authorized.
+- **Sub-agents**: receive `prescription_id` and pill IDs, read what they need, `pill_store`/`pill_revise` their own compounds, return `pills_saved [{id, title}]`.
 
-### Agents & Artifacts
+Pills can only be stored, revised or discarded while their prescription is open (`prescription_closed` otherwise). To touch a pill in a closed prescription: `pill_read` → `prescription_id`; `prescription_read` → note whether it was closed; `prescription_reopen`; act; `prescription_close` only if it was closed before.
 
-| Agent | Compound | Artifact (owns) | Forbidden | Title example |
+### Agents & compounds
+
+| Agent | Model | Compound | Owns | Forbidden |
 |---|---|---|---|---|
-| `sdd-init` | `config` (exclusive) | project config | — | `Project configuration` |
-| `sdd-explorer` | `discovery` | current-state facts, mappings, files | decisions, recommendations | `Auth flow uses legacy middleware` |
-| `sdd-proposer` | `decision` | intent + scope + risks + arch decisions | detailed specs, file plan | `Replace auth middleware with JWT` |
-| `sdd-specifier` | `specification` | Given/When/Then contracts per domain | DDL bodies, pseudocode, file plan | `JWT validation rules (auth domain)` |
-| `sdd-architect` | `architecture` | file plan + data flow + cutover + tech risks | GWT, code, DDL bodies, pseudocode | `Stateless JWT over sessions` |
-| `sdd-planner` | `task` | task checklist referencing specs + plan | re-explaining specs/decisions | `Replace auth middleware with JWT — tasks` |
-| `sdd-implementer` | — | writes real files; marks tasks `[x]`; reports off-script findings via structured summary | creating ANY pills (findings travel via summary; orchestrator runs Off-script protocol) | — |
-| `sdd-verifier` | `feedback` | PASS/FAIL report against specs | rewriting specs | `Verify: Replace auth middleware with JWT` |
-| `sdd-archiver` | `summary` | session summary | any other compound | `Session: Replace auth middleware with JWT` |
-| `sdd-committer` | — | git commit (no Pillbox) | — | — |
+| `sdd-init` | sonnet | `config` (exclusive) | project config | — |
+| `sdd-explorer` | sonnet | `discovery` (store; revise only in the current prescription) | current-state facts, open questions, suggested tier | decisions, designs |
+| orchestrator | — | `decision`, `summary` | intent, scope, constraints, decisions, risks; session summary; discarding superseded specs | code, specs, file plans |
+| `sdd-designer` | opus | `specification` (with `Supersedes:`), `task` | Given/When/Then per domain (when behaviour rules exist); task batches with file plan, acceptance, gate, commit policy, allowed files, cutover | code, pseudocode >5 lines, DDL bodies, editing pills outside the current prescription |
+| `sdd-implementer` | opus | `task` (revise only: `[x]`, evidence, `Commits:`) | real files, self-verification, work-unit commits | creating pills, rewriting task items, widening scope |
+| `sdd-verifier` | sonnet | `feedback` (store or revise) | PASS/FAIL against specs, tasks and the `code-quality` skill | fixing code, rewriting specs |
 
-Bugs combine `sdd-explorer` + `sdd-proposer` under compound `bugfix` (e.g. title `Crash on modal close`).
+Designer, implementer and verifier follow the `code-quality` skill as the single quality bar; they load it themselves.
 
-Two agents MAY run in parallel only if they have **different compounds**, OR same compound with **explicitly disjoint domains** declared in the briefing. Otherwise serialize them.
+Two agents may run in parallel only with different compounds or explicitly disjoint domains.
 
-### Pills content rules
+### Pill limits per compound
 
-- **No code in pills**: no code blocks, no full DDL bodies, no pseudocode >5 lines.
-- **Pills contain**: decisions (chosen/discarded/why), Given/When/Then rules, file plan (one line each), text diagrams, risks + mitigations, cutover/rollback in structured prose.
-- **Size**: target ~200–2000 chars per pill (comfortable range — 2000 is fine for a well-explained pill, not crowded). Below ~200 is likely too thin (merge or add context). Above ~3000 is genuinely too dense — split with `[1]`/`[2]` via `pill_store` (same compound, suffix the title). `pill_revise` rewrites one ID in place (title/content/compound); send the full content, not a diff.
-- **Structure**: lead line must be `Purpose:`, `Decision:`, or `Rule:` — then bullets or table, no narrative prose.
-- **Cross-references**: cite by pill ID (`see #75`) — never re-describe content from another pill.
+Hard limit is 5000 chars (the server rejects above). Soft targets — write dense, split only by natural unit (one domain, one batch), never `[1]/[2]` of the same unit unless unavoidable:
 
-### Sub-agent Launch Template
+| Compound | Target | Natural unit |
+|---|---|---|
+| `config` | ≤2000 | one per project |
+| `discovery` | ≤1500 | one per topic/finding |
+| `decision` | ≤3500 | one per change |
+| `specification` | ≤4000 | one per domain (current version) |
+| `task` | ≤3000 at design / ≤4500 with evidence | one per batch |
+| `feedback` | ≤2000 | one per change |
+| `summary` | ≤2000 | one per session |
 
-Invoke via Agent tool with `subagent_type: sdd-{agent}` and this prompt:
+### Pill content rules
+
+- Lead line `Purpose:`, `Decision:` or `Rule:`, then bullets or tables. No narrative prose, no code blocks, no DDL bodies, no pseudocode >5 lines.
+- Cite other pills by ID (`see #75`); never re-describe them. The `decision` cites `discovery` IDs instead of copying their facts; `summary.found` lists only findings not already stored in a pill, citing IDs for the rest.
+- Corrections use `pill_revise` on the existing ID with the full rewritten content — never a new pill "rev2". `pill_discard` only for genuinely wrong pills and for specifications superseded by a newer spec's `Supersedes:` line (Session Close).
+- One current `specification` per domain, titled `{Domain} specification`. A newer version in another prescription carries `Supersedes: #old`.
+- `task` pills are the only operational source of gate, commit policy and allowed files. They carry evidence per item: commit hash (or `uncommitted`) and observed gate results, one line per task, plus a `Commits:` line. Commit hashes are never trimmed.
+
+### Tiers
+
+The explorer suggests a tier; the user confirms it in the single question.
+
+| Tier | When | Pipeline |
+|---|---|---|
+| `small` | ≤3 files, understood, no new behaviour rules | `decision` (with a `Tasks:` block) → implementer → spot check → `summary`. No designer, no `task` pill. In `fix` the explorer runs only if the flow is unfamiliar; in `new` it always runs because it suggests the tier. |
+| `standard` | two or more meaningful steps | explorer → question → `decision` → designer → implementer → self-verification → `summary` |
+| `large` | phases, migrations, cutover, parity | standard + one `task` pill per batch, `sdd-verifier` at the end |
+
+Commits always follow the policy the user chose (per batch / at close / none), whatever the tier. Anything touching security, credentials, data loss, migrations or public contracts is verified as `large` regardless of size.
+
+### Sub-agent launch template
 
 ```
 CONTEXT:
-- Project: {path} | Change: {name} | Prescription ID: {id}
-- Identity: {"name": "...", "email": "..."}   ← use as author in every pill_store call
-- Config: {project config pill content}
-- Recent sessions: {bottle_context output}   ← index only, no pills
-- Current session pills: {prescription_context output}   ← omit if new session
-- {inline artifact pills as needed: proposal, specs, design, tasks…}
+- Project: {path} | Change: {name} | Prescription ID: {id} | Tier: {tier}
+- Identity: {"name": "...", "email": "..."}   ← author in every pill_store/pill_revise call
+- Config pill: #{id}
+- Pills to read: #{id} {one-line title} …        ← IDs only; read with pill_read
+- Related past pills (optional): #{id} {title} …
+- Project skills to load before work: {exact SKILL.md paths, if any — code-quality is loaded by the agents themselves}
 
-SCOPE (produce):
-- {artifact type owned by this agent}
+SCOPE: {what this agent must produce, which compounds}
+FORBIDDEN: {adjacent lanes}
+TASK: {description; for the implementer: batch id only — gate, commit policy and allowed files live in the task pill (tier small: in the decision pill's Tasks: block)}
 
-FORBIDDEN (do not include):
-- code blocks, DDL bodies, pseudocode >5 lines
-- {lane of adjacent agents — e.g. "GWT specs" if briefing architect}
-
-REFERENCE BY ID (do not re-describe):
-- pill #{N} — {artifact name}
-
-TASK: {description}
-
-RETURN: status, executive_summary, pills_saved [{id,title}], next_recommended, risks.
+RETURN (≤15 lines): status, pills_saved/revised [{id,title}], superseded, outcome, gates with counts, commit, decisions_needed, findings.
 ```
 
-## Identity Resolution (shared)
+Tier `small` has no `task` pill: the task block is a `Tasks:` section of the `decision` pill (≤5 tasks), so it survives an interrupted session and the verifier can read it. The implementer never edits the `decision` pill: after it returns, the orchestrator marks the finished items `[x]` in that block. Fixes in tier `small` add items to it.
 
-Run once per session, before opening any prescription or storing any pill:
+```
+Tasks:
+Gate: {exact commands}
+Commit: {policy} (decision #id)
+Allowed files: {paths}
+- [ ] 1 {concrete action}. Verify: {command or observable}
+```
 
-1. Read `~/.pillbox/identity.json` → if it exists, load `name` + `email` as `$identity`.
-2. If missing: run `git config user.name` + `git config user.email`.
-   - On success: write `~/.pillbox/identity.json` with `{"name": "...", "email": "..."}` → store as `$identity`.
-3. If git config fails or returns empty: ask the user for name and email → write `~/.pillbox/identity.json` → store as `$identity`.
+## Identity Resolution
 
-Pass `$identity` as the `Identity` field in every sub-agent launch (see Launch Template) and in every `prescription_open` call.
+Once per session, before opening a prescription or storing a pill:
+1. `~/.pillbox/identity.json` → `name` + `email`.
+2. Else `git config user.name` / `user.email` → write the file.
+3. Else ask the user → write the file.
 
-## Session Start (shared)
+## Session Start
 
-Run at the start of every action that needs project context:
-1. Identity Resolution (see above)
-2. `capsule_search "{terms}"` → user prefs
-3. `bottle_list` → `bottle_id`; if no bottle exists → `bottle_create` first
-4. `bottle_context bottle_id` → prescription index (sessions, dates, pill_count); note any open prescription for this change
-5. If open prescription: `prescription_context prescription_id` → recover actual pills of that session before passing them inline to sub-agents
-6. `pill_search compound="config"` → `pill_read` → project config (compound is exclusive to this pill, so the search is unambiguous)
+1. Identity Resolution.
+2. `capsule_search "{terms}"` → user preferences.
+3. `bottle_list` → `bottle_id` (`bottle_create` if missing).
+4. `bottle_context bottle_id` → prescription index; note any open prescription for this change.
+5. If open: `prescription_context` → current pill IDs.
+6. `pill_search compound="config"` → config pill ID.
 
-## Session Close (shared)
+## Session Close
 
-Run when ending a prescription that contains work (i.e. `continue` reaches Verify PASS):
+Runs when verification passes (or the user accepts warnings):
+1. **Commit at close** — if commits were authorized "at close" and something is uncommitted: take the changed files from `git diff --name-only <Base>` plus untracked files (`git status --porcelain`; with `Base: none`, `git status --porcelain` alone), keep only those inside the batches' allowed files, stage them explicitly, one Conventional Commit in the project's language, no AI attribution lines. Never `git add .`, never push, never commit databases or secrets.
+2. **Summary** — write the `summary` pill: `goal`, `done` (mention a FAIL that was fixed; in tier `small`, the implementer's evidence), `found` (only what no pill holds yet; cite IDs), `next`, `files`, `commits`.
+3. **Superseded specs** — `prescription_context` of the current prescription → `pill_read` each `specification` → collect its `Supersedes: #id` lines. For each ID: `pill_read` → its `prescription_id`; `prescription_read` → note whether it was closed; `prescription_reopen`; `pill_discard`; `prescription_close` only if it was closed before. Skip IDs already discarded or not found.
+4. `prescription_close` the current prescription.
 
-1. Launch `sdd-archiver` → creates the `summary` pill via `pill_store`
-2. `prescription_close prescription_id` → marks `ended_at`
-3. Launch `sdd-committer` → creates the git commit (skip if no code changed)
-
-The `summary` pill MUST be stored before `prescription_close` — without it the session's context is lost for future runs.
-
-`new` and `fix` open prescriptions but do not close them: they hand off to `/sdd:continue`, which runs this sequence when the full cycle completes.
-
-`init` is the exception: its prescription holds only the project config pill (no work to summarize), so it closes directly after `sdd-init` saves the config — no archiver, no committer.
+`init` closes right after `sdd-init` saves the config (no summary).
 
 ---
 
@@ -122,109 +137,75 @@ The `summary` pill MUST be stored before `prescription_close` — without it the
 
 ### init
 
-1. Ensure bottle (`bottle_list` → `bottle_create` if missing); `prescription_open title="Project configuration"`
-2. `TodoWrite`: [Detect stack, Save config]
-3. Launch `sdd-init`; confirm `pills_saved`; `prescription_close`
-
----
+1. `bottle_list` → `bottle_create` if missing.
+2. `pill_search compound="config"`:
+   - **Missing** → `prescription_open title="Project configuration"`; launch `sdd-init`; confirm `pills_saved`; `prescription_close`.
+   - **Exists (re-init)** → `pill_read` → its `prescription_id`; `prescription_read` → note whether it was closed; `prescription_reopen`; launch `sdd-init` with that prescription ID and the config pill ID; confirm `pills_revised`; `prescription_close` only if it was closed before. More than one `config` (legacy) → use the most recent and tell the user.
 
 ### hub
 
-`pill_search compound="config"`:
-- **missing** → show: init / explore / new
-- **exists** → show: explore / new / fix / continue / status / re-init
-
----
+`pill_search compound="config"`: missing → offer init / explore / new; exists → explore / new / fix / continue / status / re-init.
 
 ### explore
 
-`pill_search compound="specification" query="{domain terms}"` → related specs.
-Launch `sdd-explorer`. Show result.
-
----
+`pill_search compound="specification" query="{terms}"` and `pill_search compound="discovery" query="{terms}"` → related IDs. Launch `sdd-explorer` (read-only, no change intent) with those IDs. Show its summary. Without an open prescription the explorer stores nothing; to keep the findings, open one first (`prescription_open title="Explore: {topic}"`) and close it afterwards.
 
 ### new
 
-`prescription_open title="{change name}"` — e.g. `"Replace auth middleware with JWT"`. Always opens a new prescription; if one for this change is already open, pick its id from `bottle_context` and skip this call.
-`TodoWrite`: [Load context ✓, Explore, Propose, Spec, Arch, Plan, Implement, Verify, Archive]
+`prescription_open title="{change name}"` (reuse an open one from `bottle_context` if it exists).
+`TodoWrite`: [Explore, Decide, Design, Implement, Verify, Close]
 
-1. `pill_search compound="specification" query="{domain terms}"` → related specs
-2. Launch `sdd-explorer`; show result; ask to proceed
-3. Ask testing prefs: tests? levels? library? TDD?
-4. Launch `sdd-proposer` (exploration + testing prefs); show result; ask to proceed
-5. → `"Ready for /sdd:continue"`
-
----
+1. `pill_search` compounds `specification`, `decision` and `discovery` with domain terms → related IDs (titles only).
+2. Launch `sdd-explorer` with the change intent, the related IDs and the prior `discovery` IDs. It returns: facts summary, `discovery` pill IDs, affected areas, **open questions**, suggested tier.
+3. **One** `AskUserQuestion`: the open questions, testing (tests? levels? library? TDD?), tier, commit policy (per batch / at close / none).
+4. Write the `decision` pill: `Decision:` line, **tier**, `Base: {git rev-parse HEAD}` (`Base: none` outside git or without commits), intent, scope in/out, constraints (testing, runner, gates, commit policy), user decisions, chosen/discarded/why for each non-obvious choice, risks + mitigations, success criteria, and for tier `small` the `Tasks:` block. Cite `discovery` IDs; never copy their facts.
+5. Tier `small`: launch `sdd-implementer` with the `decision` ID → verification as in `continue` (spot check; `sdd-verifier` if sensitive) → Session Close.
+6. Otherwise launch `sdd-designer` with the `decision` and `discovery` IDs (+ related past `specification`/`task` IDs found in step 1). It returns `specification` (if any) and `task` pill IDs with batch list, gate commands and `superseded` spec IDs.
+7. Show the consolidated plan: decision summary, batches, gates, what will be committed. Ask once: proceed? → `"Ready for /sdd:continue"` or continue directly if the user says so.
 
 ### continue
 
-Locate the open prescription for this change via `bottle_context` (or call `prescription_open` to start one if none exists).
-Determine phase → `TodoWrite` (past phases ✓, current in_progress).
-`pill_read` needed pills before each sub-agent.
+Locate the open prescription (`bottle_context`), `prescription_context` → pill IDs. Determine state and `TodoWrite`.
 
-| Existing pills | Next |
+| State | Next |
 |---|---|
-| No proposal | redirect → `sdd:new` |
-| No spec or arch | prefetch past `architecture` pills relevant to the domain (`pill_search compound="architecture" query="{domain terms}"`, top 2-3) and pass inline; then launch `sdd-specifier` + `sdd-architect` (parallel) |
-| Spec+arch, no tasks | launch `sdd-planner` |
-| Tasks not all `[x]` | launch `sdd-implementer` (batch by phase); after: `pill_revise tasks` marking `[x]`. **If `executive_summary.status != proceeding` → run Off-script protocol (below) before next batch** |
-| Tasks all `[x]`, no verify | launch `sdd-verifier` |
-| Verify PASS, no summary | launch `sdd-archiver` → `prescription_close` → launch `sdd-committer` |
-| Closed rx + summary | "Already archived." |
+| No `decision` | redirect → `sdd:new` |
+| `decision`, no `task` | tier `small`: `Tasks:` block not all done → launch `sdd-implementer` with the `decision` ID; done → verification. Otherwise launch `sdd-designer` |
+| `task` with `[ ]` items | launch `sdd-implementer` for the next batch with IDs (task, specification, decision) and the batch id — gate, commit policy and allowed files come from the task pill. It revises the `task` pill itself. Then run the Off-script protocol. Loop batches without asking. |
+| All `[x]` | tier `small`/`standard`: implementer gate results are the verification; orchestrator re-runs **one** gate command as spot check. Tier `large` or sensitive: launch `sdd-verifier` with the `decision`, `specification` and every `task` ID (tier `small`: the `decision` ID alone), plus the existing `feedback` ID if `prescription_context` lists one. |
+| Verify PASS (or accepted warnings) | Session Close |
+| Closed prescription | "Already archived." |
 
-After each sub-agent: show summary; ask "Continue?" → loop.
-
-**Verify FAIL**: offer (1) fix+re-verify (create fix tasks → implement → verify loop), (2) fix manually, (3) archive anyway.
+**Verify FAIL**: offer
+1. **Fix** — tier `small`: `pill_revise` the `decision` pill adding fix tasks to its `Tasks:` block (derived from the `feedback` pill or the failed gate) → `sdd-implementer`. Tier `standard`/`large`: launch `sdd-designer` with the `feedback` ID to create a new `task` pill `{change} — tasks [fix]` → implementer → verify again passing the same `feedback` ID.
+2. Fix manually.
+3. Close anyway with the failures in `summary.next`.
 
 #### Off-script protocol
 
-After each implementer batch, parse its structured summary (Bugs Found / Deviations / Discoveries) and act per the table:
+The implementer's hand-back has `findings` with kind and flags. Act per row; do not relaunch anything for a note.
 
-| Finding from implementer | Orchestrator action |
+| Finding | Action |
 |---|---|
-| `bug in_scope=yes` | Already fixed inline. Note in chat. Continue. |
-| `bug in_scope=no` + `blocks_progress=yes` | Pause implementer. **⚠️ User decision**: extend scope? If yes → relaunch `sdd-proposer` with proposal pill ID + extension instructions (proposer uses `pill_revise`). If specs/design also affected → chain `sdd-specifier`/`sdd-architect` with `pill_revise` on their pills. Update tasks pill via `pill_revise` to add the new tasks. Resume implementer. |
-| `bug in_scope=no` + `blocks_progress=no` | Note in chat. Carry forward into archiver context (so it lands in `found:`). Continue. |
-| `deviation` with valid `why` | Relaunch `sdd-architect` with architecture pill ID + deviation details → `pill_revise`. Continue. |
-| `deviation` without valid `why` | Tell implementer to rework following the original design. Re-run the same batch. |
-| `discovery` | Note in chat. Carry forward into archiver context. Continue. |
-| `status: blocked` | Stop. Show the implementer's blocker. **⚠️ User decision** required before any next step. |
-
----
-
-### ff (fast-forward)
-
-Requires an open prescription from `new`. Ask testing prefs.
-`TodoWrite` all phases. Run sequentially, no user prompts between:
-`sdd-proposer` → `sdd-specifier` + `sdd-architect` (parallel) → `sdd-planner`
-Show combined summary at end. Stop on first failure.
-
-> Offer `ff` proactively after `new` when the change is well-scoped and the user hasn't asked to review each phase.
-
----
+| `bug in_scope=yes` | already fixed inline; note it |
+| `bug in_scope=no blocks=yes` | pause. **⚠️ User decision**: extend scope? Yes → `pill_revise` the `decision` pill (scope + why), relaunch `sdd-designer` with the `task` pill ID to add the new items (keeping `[x]` and evidence verbatim), resume the implementer |
+| `bug in_scope=no blocks=no` | note; goes to `summary.found` |
+| `deviation` with valid `why` | the implementer already recorded it in the `task` evidence; note it |
+| `deviation` without valid `why` | tell the implementer to rework the batch following the task |
+| `discovery` | note; goes to `summary.found` |
+| `status: blocked` | stop. **⚠️ User decision** before anything else |
 
 ### fix
 
-`prescription_open title="{bug summary}"` — e.g. `"Crash on modal close"`.
-`TodoWrite`: [Load context ✓, Explore, Propose, Plan, Implement, Verify, Archive]
-
-1. Launch `sdd-explorer` (focused on bug); show; ask to proceed
-2. Launch `sdd-proposer` (minimal scope, skip testing prefs); show; ask to proceed
-3. Launch `sdd-planner` (no specs/design — derive tasks from proposal only)
-4. → `"Ready for /sdd:continue {name}"`
-
----
+Same as `new` with tier `small` by default: `prescription_open title="{bug summary}"`, search prior `discovery` pills, launch `sdd-explorer` focused on the bug **only if the flow is unfamiliar**, one question if a real decision exists, `decision` pill (compound `decision`, title = the bug, with `Base:` and a `Tasks:` block), implementer, spot check, Session Close. If exploration reveals ≥2 meaningful steps, promote to `standard`.
 
 ### status
 
-`pill_search compound="decision"` (optionally narrow by query).
-For each: check tasks `[x]` count, verify pill, prescription state.
+`pill_search compound="decision"` (optionally narrowed by query). For each change: tier from the `decision` pill, `[x]`/total across all its `task` pills (including `[fix]` batches; tier `small`: the `Tasks:` block of the `decision`), `feedback` verdict, prescription state. Superseded specifications are discarded and do not appear. Changes made with earlier versions may use the compounds `bugfix` and `architecture`; include `bugfix` in the search and treat `architecture` pills as read-only design context (never superseded or discarded).
 
 ```
-| Change                    | Phase        | Tasks | Status   |
-|---------------------------|--------------|-------|----------|
-| Add search feature        | implementing | 5/12  | active   |
-| Fix crash on modal close  | done         | 3/3   | archived |
+| Change                    | Tier     | Tasks | Status   |
+|---------------------------|----------|-------|----------|
+| Add search feature        | standard | 5/12  | active   |
+| Fix crash on modal close  | small    | 3/3   | archived |
 ```
-
----

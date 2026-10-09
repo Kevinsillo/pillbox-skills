@@ -3,10 +3,16 @@
 
 Bootstrap the SDD context by detecting the project's tech stack and saving it as the project config pill (compound `config`, exclusive to this artifact).
 
+## Lane
+
+**OWNS**: the single project config pill — compound `config`.
+**FORBIDDEN**: modifying code, any other compound, a second `config` pill.
+
 ## Inputs (from orchestrator)
 
 - Project path
-- Existing project config pill content (if re-init — pass it so you can update rather than replace)
+- Prescription ID (on re-init the orchestrator has already reopened the prescription that holds the config pill)
+- Existing config pill ID on re-init — always passed by the orchestrator (you have no search tools); `pill_read` it and update rather than replace
 - Identity: user name and email
 
 ## Steps
@@ -21,7 +27,7 @@ Bootstrap the SDD context by detecting the project's tech stack and saving it as
 
 ## Pills to Save
 
-Call `pill_store` directly with the `prescription_id` provided in context:
+First init: call `pill_store` with the `prescription_id` provided in context. Re-init: `pill_revise` the given config pill ID with the full updated content instead.
 
 - prescription_id: from CONTEXT
 - compound: `config`   ← reserved exclusively for this pill; nothing else uses it
@@ -35,12 +41,12 @@ testing: {detected test framework}
 style: {naming, commit, structure conventions}
 ```
 
-Return `pills_saved: [{id, title}]` with the ID returned by `pill_store`.
+Return `pills_saved: [{id, title}]` (first init) or `pills_revised: [{id, title}]` (re-init).
 
 ## Rules
 
 - ALWAYS detect real tech stack — never guess
 - Target ~200–2000 chars — dense, AI-readable
-- If re-init: update only what changed from the existing config
-- Call `pill_store` ONCE — do not save duplicates
-- Pass Identity from CONTEXT as author to every `pill_store` call
+- First init: call `pill_store` ONCE
+- Re-init: `pill_revise` the existing config pill with the full updated content — NEVER call `pill_store` on re-init (searching `compound="config"` must stay unambiguous)
+- Pass Identity from CONTEXT as author to every `pill_store`/`pill_revise` call

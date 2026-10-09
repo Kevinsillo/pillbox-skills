@@ -30,8 +30,10 @@ function Expand-HomePath($p) {
 # Renders one agent's frontmatter (without the surrounding --- fences) from the
 # JSON object, matching install.sh yaml_from_json:
 #   - top-level scalars: `key: <json-quoted value>`  (keeps ':' in descriptions safe)
-#   - nested objects (opencode `tools`): `key:` then `  "subkey": <value>`
-#     where booleans render bare (true/false) and the key is always quoted.
+#   - top-level arrays (claude-code `skills`): JSON flow sequence, e.g. ["code-quality"]
+#   - nested objects (opencode `permission`): `key:` then `  "subkey": <value>`
+#     where values render bare (allow/deny) and the key is always quoted.
+#     Key order is preserved: the last matching permission rule wins.
 function Format-Frontmatter($agent) {
     $lines = @()
     foreach ($prop in $agent.PSObject.Properties) {
@@ -51,7 +53,8 @@ function Format-Frontmatter($agent) {
                 $lines += "  ${key}: ${rendered}"
             }
         } else {
-            $json = ($val | ConvertTo-Json -Compress)
+            # -InputObject keeps single-element arrays as arrays (piping unrolls them).
+            $json = ConvertTo-Json -InputObject $val -Compress
             $lines += "$($prop.Name): $json"
         }
     }
@@ -134,8 +137,8 @@ Write-Host ""
 Write-Host "Install the 'sdd' skill, its agents and commands? (recommended)"
 Write-Host ""
 Write-Host "  SDD (Spec-Driven Development) is Pillbox's official workflow:"
-Write-Host "  proposal -> specs -> design -> implementation -> verification."
-Write-Host "  Includes the 'sdd' skill and the specialized agents (sdd-explorer, sdd-implementer, etc.)"
+Write-Host "  explore -> decision -> design -> implementation -> verification."
+Write-Host "  Includes the 'sdd' and 'code-quality' skills and the specialized agents (sdd-explorer, sdd-implementer, etc.)"
 Write-Host ""
 Write-Host "  Advanced option: if you prefer your own development workflows, answer 'n'."
 Write-Host "  Keep in mind that Pillbox is designed and tested on top of SDD, so adapting"
@@ -156,6 +159,7 @@ $InstallCommands = @()
 if ($installPillbox -ne "n") { $InstallSkills += "pillbox" }
 if ($installSdd -ne "n") {
     $InstallSkills   += "sdd"
+    $InstallSkills   += "code-quality"
     $InstallAgents   += "sdd"
     $InstallCommands += "sdd"
 }
@@ -173,7 +177,7 @@ foreach ($provider in $Selected) {
     $agentsPath    = Expand-HomePath $paths.agents
     $skillsPath    = Expand-HomePath $paths.skills
     $commandsPath  = Expand-HomePath $paths.commands
-    $skillsPathRaw = $paths.skills   # keeps ~ for command-body substitution
+    $skillsPathRaw = $paths.skills   # keeps ~ for agent and command-body substitution
 
     Write-Host ""
     Write-Host "Installing $provider"
@@ -181,6 +185,14 @@ foreach ($provider in $Selected) {
     # Agents
     if ($InstallAgents.Count -gt 0) {
         New-Item -ItemType Directory -Force -Path $agentsPath | Out-Null
+        # Remove agents from previous versions that no longer exist in the config.
+        foreach ($legacy in @("sdd-proposer", "sdd-specifier", "sdd-architect", "sdd-planner", "sdd-archiver", "sdd-committer")) {
+            $legacyFile = Join-Path $agentsPath "$legacy.md"
+            if (Test-Path $legacyFile) {
+                Remove-Item -Path $legacyFile -Force
+                Write-Host "  x agents/$legacy.md removed (no longer part of SDD)" -ForegroundColor Yellow
+            }
+        }
         foreach ($agentProp in $Config.$provider.agents.PSObject.Properties) {
             $agentName = $agentProp.Name
             $shouldInstall = $false
@@ -194,7 +206,7 @@ foreach ($provider in $Selected) {
                 Write-Host "  Warning: agents/$agentName.md not found, skipping" -ForegroundColor Yellow
                 continue
             }
-            $body = Get-Content $contentFile -Raw
+            $body = (Get-Content $contentFile -Raw) -replace '__SKILL_DIR__', $skillsPathRaw
             $front = Format-Frontmatter $agentProp.Value
             $out = @("---") + $front + @("---", "") + @($body)
             Set-Content -Path (Join-Path $agentsPath "$agentName.md") -Value ($out -join "`n") -NoNewline
