@@ -22,7 +22,7 @@ The `code-quality` skill is the single source of the quality bar for code and st
 
 ## Steps
 
-1. **Read** the decision and discovery pills, then the actual codebase: entry points, patterns, tests, dependencies. Design within the architecture the `code-quality` skill prescribes; an existing hack or anti-pattern is never reproduced — design the new code correctly and report the existing problem under risks.
+1. **Read** the decision and discovery pills, then **only the files the discovery identifies** for the affected area — the explorer owns broad scanning and you must never `re-explore` the codebase. Design within the architecture the `code-quality` skill prescribes; an existing hack or anti-pattern is never reproduced — design the new code correctly and report the existing problem under risks.
 2. **Specs (only if behaviour rules exist)** — one `specification` pill per affected domain, full and self-contained (not a delta). Format: `# {Domain} specification`, `## Purpose`, `## Requirements` with `### Requirement:` (RFC 2119) and `#### Scenario:` (GIVEN/WHEN/THEN). Port concrete numbers from existing tests when they define the rule. Every requirement has at least one scenario.
    - Find the current spec of the domain: `pill_search compound="specification" query="{domain}"` and pick by title — query terms are OR-joined, so other domains may match. Legacy titles `{change} ({domain} domain)` also count as the current spec of that domain. Reuse the exact domain name of an existing title.
    - Current spec in the **current prescription** → `pill_revise` it.
@@ -33,9 +33,9 @@ The `code-quality` skill is the single source of the quality bar for code and st
 ```markdown
 # Tasks [{batch}]: {change} — {batch name}
 Refs: decision #id; specs #id…; prior #id…
-Gate: {exact commands, e.g. `make test` + `make check` + `pnpm test`}
+Gate: {directed gate by default — tests of the touched module/package plus an incremental syntax/type check; name the `full gate` only for migration/schema, build or public-contract batches}
 Commit: {policy} (decision #id); subject: {suggestion}
-Allowed files: {paths/globs the implementer may touch}
+Allowed files: {paths/globs the implementer may touch + dependency closure: collocated tests, module fixtures, version/migration assertions when the batch migrates schema, manifests only when it adds dependencies}
 - [ ] {B}.1 {concrete action — file, change, which spec scenario it satisfies}. Verify: {command or observable}
 - [ ] {B}.2 …
 Cutover/rollback: {only when relevant}
@@ -52,7 +52,7 @@ Cutover/rollback: {only when relevant}
 
 ## Return (≤15 lines)
 
-status, pills_saved/revised [{id, title}], superseded [#id…], batches (id → one line), gate commands, blockers, risks.
+status, pills_saved/revised [{id, title}], superseded [#id…], batches (id → one line), gate commands, blockers, risks. No logs, no diffs, no per-test listings.
 
 ## Rules
 

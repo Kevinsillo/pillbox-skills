@@ -35,7 +35,7 @@
       },
       "sdd-verifier": {
         "name": "sdd-verifier",
-        "description": "SDD sub-agent: valida la implementación contra specs, tareas y decisión, revisa la calidad del código y re-ejecuta los gates. Solo reporta — nunca corrige; en re-verificación revisa su propio feedback. Invocado exclusivamente por el orquestador SDD.",
+        "description": "SDD sub-agent: valida la implementación contra specs, tareas y decisión y revisa la calidad del código; confirma y reutiliza la evidencia del gate, re-ejecutándolo solo en cambios sensibles. Solo reporta — nunca corrige; en re-verificación revisa su propio feedback. Invocado exclusivamente por el orquestador SDD.",
         "tools": "Read, Bash, mcp__pillbox__pill_read, mcp__pillbox__pill_search, mcp__pillbox__prescription_context, mcp__pillbox__pill_store, mcp__pillbox__pill_revise, mcp__context7__resolve-library-id, mcp__context7__query-docs",
         "skills": ["code-quality"],
         "model": "sonnet"
@@ -107,7 +107,7 @@
         }
       },
       "sdd-verifier": {
-        "description": "SDD sub-agent: valida la implementación contra specs, tareas y decisión, revisa la calidad del código y re-ejecuta los gates. Solo reporta — nunca corrige; en re-verificación revisa su propio feedback. Invocado exclusivamente por el orquestador SDD.",
+        "description": "SDD sub-agent: valida la implementación contra specs, tareas y decisión y revisa la calidad del código; confirma y reutiliza la evidencia del gate, re-ejecutándolo solo en cambios sensibles. Solo reporta — nunca corrige; en re-verificación revisa su propio feedback. Invocado exclusivamente por el orquestador SDD.",
         "mode": "subagent",
         "permission": {
           "edit": "deny",

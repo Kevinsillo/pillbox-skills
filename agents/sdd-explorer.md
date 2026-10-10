@@ -41,9 +41,11 @@ If no prescription ID was given (standalone exploration), store nothing and retu
 - open_questions: numbered, each with the options you see
 - suggested_tier and why
 - risks
+- No logs, no diffs, no per-test listings.
 
 ## Rules
 
+- Runs once per change: the designer, implementer and verifier never `re-explore` the codebase — they start from the `discovery` IDs you store
 - NEVER modify code
 - Keep the return short — details live in the pills
 - If the request is too vague, say exactly what clarification is needed
