@@ -77,6 +77,23 @@ The explorer suggests a tier; the user confirms it in the single question.
 
 Commits always follow the policy the user chose (per batch / at close / none), whatever the tier. Anything touching security, credentials, data loss, migrations or public contracts is verified as `large` regardless of size.
 
+After all `[x]` the orchestrator orders the full gate once per change (see Gate levels) and verifies by tier: `small`/`standard` spot-check one command; `large` or sensitive launches `sdd-verifier`, which reuses the gate evidence.
+
+## Gate levels
+
+Exactly two levels — `directed gate` and `full gate` — and every `Gate:` line names one:
+
+- **Directed gate** — tests of the touched module/package plus an incremental syntax/type check. Default for every batch; it is what a `task` pill's `Gate:` lists.
+- **Full gate** — formatting + static analysis + the entire suite. The orchestrator orders it **once per change**, after all items are `[x]` and before final verification; its counts and commit are the evidence the verifier reuses.
+
+Only a batch that touches migration/schema, the build system or a public contract may require the full gate per batch; no other `task` pill may name it. The verifier must `reuse the gate evidence` (recorded counts and commit) instead of re-running the suite, and re-runs the gate only when the change or fix touches migration, schema, security, data loss, a public contract or shared core; otherwise it spot-checks.
+
+## Log protocol
+
+Every runner (tests, linter, build, type-check) runs in its minimal reporter (failures-only/silent) mode, stops at the first failure during iteration, and redirects its full output to a temporary file outside the context.
+
+An agent returns only the command, a PASS/FAIL verdict, the counts (passed/failed/ignored) and at most the failure lines or a bounded tail. Full logs, per-test listings and temp-file contents are never returned, pasted as evidence or put in the RETURN. The rule is identical for the implementer's batch gate and the verifier's run: the verifier cites counts and commits, never re-emits the log.
+
 ### Sub-agent launch template
 
 ```
@@ -84,7 +101,7 @@ CONTEXT:
 - Project: {path} | Change: {name} | Prescription ID: {id} | Tier: {tier}
 - Identity: {"name": "...", "email": "..."}   ← author in every pill_store/pill_revise call
 - Config pill: #{id}
-- Pills to read: #{id} {one-line title} …        ← IDs only; read with pill_read
+- Pills to read: #{id} {one-line title} …        ← IDs only; read with pill_read. A batch reads only its `decision`, the `specification` of its domain and the active `task` — never earlier `task` pills unless the active task declares a dependency.
 - Related past pills (optional): #{id} {title} …
 - Project skills to load before work: {exact SKILL.md paths, if any — code-quality is loaded by the agents themselves}
 
@@ -92,18 +109,22 @@ SCOPE: {what this agent must produce, which compounds}
 FORBIDDEN: {adjacent lanes}
 TASK: {description; for the implementer: batch id only — gate, commit policy and allowed files live in the task pill (tier small: in the decision pill's Tasks: block)}
 
-RETURN (≤15 lines): status, pills_saved/revised [{id,title}], superseded, outcome, gates with counts, commit, decisions_needed, findings.
+RETURN (≤15 lines): status, pills_saved/revised [{id,title}], superseded, outcome, gates with counts (one line each), commit, decisions_needed, findings. No logs, no diffs, no per-test listings.
 ```
+
+Every sub-agent forbids `re-explore`: the explorer runs once per change and stores `discovery` pills; the designer, implementer and verifier start from those IDs and read only the files listed in the active `task`.
 
 Tier `small` has no `task` pill: the task block is a `Tasks:` section of the `decision` pill (≤5 tasks), so it survives an interrupted session and the verifier can read it. The implementer never edits the `decision` pill: after it returns, the orchestrator marks the finished items `[x]` in that block. Fixes in tier `small` add items to it.
 
 ```
 Tasks:
-Gate: {exact commands}
+Gate: {directed commands — see Gate levels}
 Commit: {policy} (decision #id)
-Allowed files: {paths}
+Allowed files: {paths + dependency closure: collocated tests, module fixtures, version/migration assertions when the batch migrates schema, manifests only when it adds dependencies}
 - [ ] 1 {concrete action}. Verify: {command or observable}
 ```
+
+Adapting test data or fixtures so the new code compiles or its tests pass is not scope widening (`adapting tests to compile`): the implementer does it inside the allowed files and records it as a `finding`, with no designer round. A behaviour change outside the batch still pauses for a user decision (see Off-script protocol).
 
 ## Identity Resolution
 
@@ -125,8 +146,8 @@ Once per session, before opening a prescription or storing a pill:
 
 Runs when verification passes (or the user accepts warnings):
 1. **Commit at close** — if commits were authorized "at close" and something is uncommitted: take the changed files from `git diff --name-only <Base>` plus untracked files (`git status --porcelain`; with `Base: none`, `git status --porcelain` alone), keep only those inside the batches' allowed files, stage them explicitly, one Conventional Commit in the project's language, no AI attribution lines. Never `git add .`, never push, never commit databases or secrets.
-2. **Summary** — write the `summary` pill: `goal`, `done` (mention a FAIL that was fixed; in tier `small`, the implementer's evidence), `found` (only what no pill holds yet; cite IDs), `next`, `files`, `commits`.
-3. **Superseded specs** — `prescription_context` of the current prescription → `pill_read` each `specification` → collect its `Supersedes: #id` lines. For each ID: `pill_read` → its `prescription_id`; `prescription_read` → note whether it was closed; `prescription_reopen`; `pill_discard`; `prescription_close` only if it was closed before. Skip IDs already discarded or not found.
+2. **Summary** — write the `summary` pill: `goal`, `done` (mention a FAIL that was fixed; in tier `small`, the implementer's evidence), `found` (only what no pill holds yet), `next`, `files`, `commits`. Cite pill IDs; never summarise their contents.
+3. **Superseded specs** — read only the `specification` pills whose `Supersedes:` the designer reported as pending in its hand-back, never every `specification`. For each such `Supersedes: #id`: `pill_read` → its `prescription_id`; `prescription_read` → note whether it was closed; `prescription_reopen`; `pill_discard`; `prescription_close` only if it was closed before. Skip IDs already discarded or not found.
 4. `prescription_close` the current prescription.
 
 `init` closes right after `sdd-init` saves the config (no summary).
@@ -172,7 +193,7 @@ Locate the open prescription (`bottle_context`), `prescription_context` → pill
 | No `decision` | redirect → `sdd:new` |
 | `decision`, no `task` | tier `small`: `Tasks:` block not all done → launch `sdd-implementer` with the `decision` ID; done → verification. Otherwise launch `sdd-designer` |
 | `task` with `[ ]` items | launch `sdd-implementer` for the next batch with IDs (task, specification, decision) and the batch id — gate, commit policy and allowed files come from the task pill. It revises the `task` pill itself. Then run the Off-script protocol. Loop batches without asking. |
-| All `[x]` | tier `small`/`standard`: implementer gate results are the verification; orchestrator re-runs **one** gate command as spot check. Tier `large` or sensitive: launch `sdd-verifier` with the `decision`, `specification` and every `task` ID (tier `small`: the `decision` ID alone), plus the existing `feedback` ID if `prescription_context` lists one. |
+| All `[x]` | orchestrator orders the **full gate once per change** (Gate levels), then verifies by tier: `small`/`standard` re-run **one** command as spot check; `large` or sensitive launch `sdd-verifier` with the `decision`, `specification` and every `task` ID (tier `small`: the `decision` ID alone), plus the existing `feedback` ID if `prescription_context` lists one. The verifier reuses the gate evidence. |
 | Verify PASS (or accepted warnings) | Session Close |
 | Closed prescription | "Already archived." |
 
@@ -188,6 +209,7 @@ The implementer's hand-back has `findings` with kind and flags. Act per row; do 
 | Finding | Action |
 |---|---|
 | `bug in_scope=yes` | already fixed inline; note it |
+| `adapting tests to compile` | test/fixture update inside the allowed files to keep the batch compiling or passing; already done, note it — no designer round |
 | `bug in_scope=no blocks=yes` | pause. **⚠️ User decision**: extend scope? Yes → `pill_revise` the `decision` pill (scope + why), relaunch `sdd-designer` with the `task` pill ID to add the new items (keeping `[x]` and evidence verbatim), resume the implementer |
 | `bug in_scope=no blocks=no` | note; goes to `summary.found` |
 | `deviation` with valid `why` | the implementer already recorded it in the `task` evidence; note it |
