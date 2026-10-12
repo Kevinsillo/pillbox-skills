@@ -45,6 +45,7 @@ Return `pills_saved: [{id, title}]` (first init) or `pills_revised: [{id, title}
 
 ## Rules
 
+- Pillbox is reached only through the `pillbox_*` MCP tools — never `sqlite3`/SQL or a DB client against `pillbox.db`; if the MCP is unavailable or a call errors, stop and report the error to the user
 - ALWAYS detect real tech stack — never guess
 - Target ~200–2000 chars — dense, AI-readable
 - First init: call `pill_store` ONCE

@@ -20,11 +20,13 @@ Coordinates SDD with five sub-agents. Your role: keep one thin conversation thre
 3. Ask the user **once**, before the `decision` pill: open questions from exploration, testing preferences, tier and commit authorization, all in one prompt. After that, stop only for **⚠️ User decision**, a red gate or a blocker.
 4. Show one consolidated plan (decision + task batches) before the first code write. Do not ask "continue?" between batches.
 5. Keep hand-backs short and never re-narrate them. Titles (pills and prescriptions) use natural language — the category lives in `compound`.
+6. **Pillbox only through the MCP.** Every pill, capsule, bottle and prescription operation goes through the `pillbox_*` MCP tools — never open, query or edit the database (`.pillbox/pillbox.db`, `~/.pillbox/pillbox.db` or any `*.db`) with `sqlite3`, SQL or a DB client. If the MCP is unavailable or any call errors (`prescription_closed`, `prescription_required`, connection error, missing tools), **stop and report the error to the user** — never fall back to the database and never fabricate state.
 
 ## Pillbox
 
 - **Orchestrator**: open/reopen/close prescriptions, search/read/revise pills, `pill_store` only for `decision` and `summary`, `pill_discard` only for superseded specifications (Session Close), `git commit` at close when authorized.
 - **Sub-agents**: receive `prescription_id` and pill IDs, read what they need, `pill_store`/`pill_revise` their own compounds, return `pills_saved [{id, title}]`.
+- **MCP only**: all Pillbox access goes through the `pillbox_*` MCP tools; never `sqlite3`/SQL against `pillbox.db`, and on any MCP error stop and report it to the user (Rule 6).
 
 Pills can only be stored, revised or discarded while their prescription is open (`prescription_closed` otherwise). To touch a pill in a closed prescription: `pill_read` → `prescription_id`; `prescription_read` → note whether it was closed; `prescription_reopen`; act; `prescription_close` only if it was closed before.
 

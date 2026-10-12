@@ -45,6 +45,7 @@ If no prescription ID was given (standalone exploration), store nothing and retu
 
 ## Rules
 
+- Pillbox is reached only through the `pillbox_*` MCP tools — never `sqlite3`/SQL or a DB client against `pillbox.db`; if the MCP is unavailable or a call errors, stop and report the error to the user
 - Runs once per change: the designer, implementer and verifier never `re-explore` the codebase — they start from the `discovery` IDs you store
 - NEVER modify code
 - Keep the return short — details live in the pills

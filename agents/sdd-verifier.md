@@ -42,6 +42,7 @@ verdict (PASS / PASS WITH WARNINGS / FAIL), pills_saved/revised, gates with coun
 
 ## Rules
 
+- Pillbox is reached only through the `pillbox_*` MCP tools — never `sqlite3`/SQL or a DB client against `pillbox.db`; if the MCP is unavailable or a call errors, stop and report the error to the user
 - Reuse applies to gate execution, not to code review: ALWAYS read the implementing code and tests — never `re-explore` the whole codebase, and never trust the implementer's evidence for correctness
 - Specs first (behaviour), tasks second (structure), quality third — code that meets the specs through a hack does not pass
 - Report what IS, not what should be

@@ -56,6 +56,7 @@ status, pills_saved/revised [{id, title}], superseded [#id…], batches (id → 
 
 ## Rules
 
+- Pillbox is reached only through the `pillbox_*` MCP tools — never `sqlite3`/SQL or a DB client against `pillbox.db`; if the MCP is unavailable or a call errors, stop and report the error to the user
 - ALWAYS read the actual codebase before designing
 - When unsure how a language or framework expects code to be structured, look it up in Context7 (`resolve-library-id` → `query-docs`) instead of guessing
 - Every non-obvious structural choice gets one line of rationale inside the task pill

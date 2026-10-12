@@ -49,6 +49,7 @@ No logs, no diffs, no per-test listings. The orchestrator acts on `findings` per
 
 ## Rules
 
+- Pillbox is reached only through the `pillbox_*` MCP tools — never `sqlite3`/SQL or a DB client against `pillbox.db`; if the MCP is unavailable or a call errors, stop and report the error to the user
 - ALWAYS read specs and tasks before writing
 - NEVER make a gate pass by silencing it (suppressed warnings, skipped or weakened tests, special cases); if it cannot pass cleanly the batch is `partial`
 - Existing hacks or anti-patterns outside the task are never copied and never refactored: report them as a `discovery` finding

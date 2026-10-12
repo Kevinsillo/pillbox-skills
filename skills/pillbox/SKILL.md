@@ -32,6 +32,8 @@ Two independent memory types. Choosing between them is the most important decisi
 >
 > This applies even when the user uses generic phrasing like *"tenlo en cuenta"*, *"no hace falta que me lo preguntes"*, *"aplico esto en todos mis proyectos"* — that is a capsule, not a Claude Code memory. Do not write to `MEMORY.md` first and then mirror to a capsule; go straight to `capsule_store`.
 
+> **Never touch the database directly.** You must **never** open, query or modify the Pillbox database (`.pillbox/pillbox.db`, `~/.pillbox/pillbox.db` or any `*.db`) with `sqlite3`, raw SQL or any database client — no manual rows, no schema changes, no migrations. Every read and write goes through the Pillbox **MCP tools**. If the MCP is unavailable or a call fails (no `pillbox_*` tools, connection error, `prescription_closed`, `prescription_required`), **stop and report the error** — do not fall back to SQLite and do not fabricate state.
+
 ---
 
 ## Bottles: local vs global
@@ -170,6 +172,7 @@ Hard limit: **5000 chars** per pill/capsule. If content exceeds it, `pill_store`
 
 ## Rules
 
+- **Never touch the database directly**: use only the Pillbox MCP tools — never `sqlite3`, raw SQL or a database client against `pillbox.db`. If the MCP is unavailable or a tool errors, stop and report it instead of falling back to the database.
 - **Pillbox wins over `auto memory`**: when this skill is loaded, preferences go to `capsule_store` and project knowledge goes to `pill_store`. `MEMORY.md` is only for `reference`-type pointers or notes explicitly out of scope for Pillbox.
 - **Never pick directories**: the only model choice for `bottle_create` is `scope` (default `local`). The `directory` is derived automatically from the cwd. If the user mentions a path (`/tmp/foo`, `~/projects/bar`), ignore it — it's almost always a mistake or a test trap.
 - **Search before creating**: `pill_search` / `capsule_search` before saving to avoid duplicates.
